@@ -67,6 +67,8 @@ export function lifecycleMixin (Vue: Class<Component>) {
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
+
+    // 执行 __patch__ 方法 ，定义在platform/runtime/index中
     if (!prevVnode) {
       // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
@@ -139,6 +141,8 @@ export function lifecycleMixin (Vue: Class<Component>) {
       vm.$vnode.parent = null
     }
   }
+
+  console.log('0-4','在Vue.prototype添加 _update、$forceUpdate、$destroy 方法');
 }
 
 export function mountComponent (
@@ -190,6 +194,7 @@ export function mountComponent (
     }
   } else {
     updateComponent = () => {
+      // _render 用于生成虚拟dom，_update 内部调用patch方法， 通过diff算法得到最终的dom
       vm._update(vm._render(), hydrating)
     }
   }
@@ -197,6 +202,8 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+
+  // 渲染的watcher
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {
@@ -332,6 +339,7 @@ export function callHook (vm: Component, hook: string) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
+
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }

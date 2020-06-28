@@ -14,7 +14,12 @@ let uid = 0
 
 export function initMixin (Vue: Class<Component>) {
   // options 即调用new Vue(options)时传入的参数
+  console.log('0-1' , '在Vue.prototype添加_init的实例方法');
+
   Vue.prototype._init = function (options?: Object) {
+
+    console.log('1-1','Vue实例初始化');
+
     const vm: Component = this  //当前实例
     // a uid
     vm._uid = uid++  //唯一标识
@@ -32,6 +37,8 @@ export function initMixin (Vue: Class<Component>) {
     vm._isVue = true
     // merge options
     // 判断是否是组件
+    // debugger
+    // 一般初始化new Vue(options)，是不会设置_isComponent属性的
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -72,7 +79,6 @@ export function initMixin (Vue: Class<Component>) {
 
     // 当el存在时，调用$mount方法
     // $mount方法定义在 platforms/web/runtime/index中，组件的挂载
-    //
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)
     }
@@ -99,7 +105,12 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 }
 
 export function resolveConstructorOptions (Ctor: Class<Component>) {
+  // 其中Ctor为 vm.constructor ，也是Vue。
+  // Vue上全局设置的Options ，在core/index中的initGlobalAPI中设置
+  // 分别为 'components', 'directives','filters'、_base
+
   let options = Ctor.options
+  // 存在super，也即Ctor从Vue中继承过来的类，一般不会这样设置。如果是这样的话，则递归处理
   if (Ctor.super) {
     const superOptions = resolveConstructorOptions(Ctor.super)
     const cachedSuperOptions = Ctor.superOptions
@@ -119,6 +130,8 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
       }
     }
   }
+
+  //正常情况下直接返回Vue的options对象
   return options
 }
 

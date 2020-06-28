@@ -37,6 +37,11 @@ let timerFunc
 // completely stops working after triggering a few times... so, if native
 // Promise is available, we will use it:
 /* istanbul ignore next, $flow-disable-line */
+
+// 分别了做promise、MutationObserver、setImmediate（IE特有）的兼容处理
+// Promise.resolve()或者是setTimeout(()=>{},0)
+
+
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
   timerFunc = () => {
@@ -46,6 +51,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     // microtask queue but the queue isn't being flushed, until the browser
     // needs to do some other work, e.g. handle a timer. Therefore we can
     // "force" the microtask queue to be flushed by adding an empty timer.
+    // 针对ios的兼容性处理
     if (isIOS) setTimeout(noop)
   }
 } else if (!isIE && typeof MutationObserver !== 'undefined' && (
@@ -80,6 +86,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   }
 }
 
+
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
   callbacks.push(() => {
@@ -95,7 +102,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
   })
   if (!pending) {
     pending = true
-    timerFunc()
+    timerFunc()  //实际执行
   }
   // $flow-disable-line
   if (!cb && typeof Promise !== 'undefined') {

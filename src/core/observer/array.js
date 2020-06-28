@@ -8,6 +8,7 @@ import { def } from '../util/index'
 const arrayProto = Array.prototype
 export const arrayMethods = Object.create(arrayProto)
 
+// 重写数组一下的方法，使得vue对数组做响应式处理
 const methodsToPatch = [
   'push',
   'pop',

@@ -17,6 +17,7 @@ export function isReserved (str: string): boolean {
 
 /**
  * Define a property.
+ * enumerable 控制属性是否可枚举
  */
 export function def (obj: Object, key: string, val: any, enumerable?: boolean) {
   Object.defineProperty(obj, key, {
@@ -30,7 +31,7 @@ export function def (obj: Object, key: string, val: any, enumerable?: boolean) {
 /**
  * Parse simple path.
  */
-const bailRE = new RegExp(`[^${unicodeLetters}.$_\\d]`)
+const bailRE = new RegExp(`[^${unicodeLetters}.$_\\d]`)  //用于匹配 XXX.XX.XX.XX的正则表达式
 export function parsePath (path: string): any {
   if (bailRE.test(path)) {
     return

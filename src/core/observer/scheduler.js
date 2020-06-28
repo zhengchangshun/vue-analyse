@@ -16,12 +16,18 @@ const queue: Array<Watcher> = []
 const activatedChildren: Array<Component> = []
 let has: { [key: number]: ?true } = {}
 let circular: { [key: number]: number } = {}
+
+// 异步的触发还没有开始
 let waiting = false
+ // 开始渲染，清空队列、执行队列中的run方法
 let flushing = false
 let index = 0
 
+// 任务调度，watcher的核心方法
+
 /**
  * Reset the scheduler's state.
+ * 清空队列
  */
 function resetSchedulerState () {
   index = queue.length = activatedChildren.length = 0
@@ -34,6 +40,7 @@ function resetSchedulerState () {
 
 /**
  * Flush both queues and run the watchers.
+ * 执行
  */
 function flushSchedulerQueue () {
   flushing = true
@@ -54,11 +61,11 @@ function flushSchedulerQueue () {
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
     if (watcher.before) {
-      watcher.before()
+      watcher.before()   // (1)
     }
     id = watcher.id
     has[id] = null
-    watcher.run()
+    watcher.run()    // (2)
     // in dev build, check and stop circular updates.
     if (process.env.NODE_ENV !== 'production' && has[id] != null) {
       circular[id] = (circular[id] || 0) + 1

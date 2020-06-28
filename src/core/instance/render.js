@@ -116,4 +116,6 @@ export function renderMixin (Vue: Class<Component>) {
     vnode.parent = _parentVnode
     return vnode
   }
+
+  console.log('0-5','在Vue.prototype添加$nextTick、_render方法');
 }

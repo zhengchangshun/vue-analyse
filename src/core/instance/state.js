@@ -116,10 +116,13 @@ function initProps (vm: Component, propsOptions: Object) {
 
 function initData (vm: Component) {
   let data = vm.$options.data
-  //判断data是否是函数，如果是则执行并返回结果，否则直接赋值
+  //判断data是否是函数，如果是则执行并返回结果，否则直接赋值。并设置同时_data的值
+  //通过proxy代理后，后续data的 get、set方法实际都作用到了this._data上
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
+
+    //data必须是一个纯对象
   if (!isPlainObject(data)) {
     data = {}
     process.env.NODE_ENV !== 'production' && warn(
@@ -128,6 +131,7 @@ function initData (vm: Component) {
       vm
     )
   }
+
   // proxy data on instance
   const keys = Object.keys(data)
   const props = vm.$options.props
@@ -135,6 +139,7 @@ function initData (vm: Component) {
   let i = keys.length
   while (i--) {
     const key = keys[i]
+    // 如果data中的属性和 methods、props中的属性相同，则抛出警告
     if (process.env.NODE_ENV !== 'production') {
       if (methods && hasOwn(methods, key)) {
         warn(
@@ -150,10 +155,12 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
-      proxy(vm, `_data`, key)
+      proxy(vm, `_data`, key)  //遍历data的属性，并都直接设置到vm实例上。设置代理后set、get方法时，实际作用在this._data上
     }
   }
   // observe data
+
+  //将data做响应式的处理
   observe(data, true /* asRootData */)
 }
 
@@ -220,7 +227,7 @@ export function defineComputed (
   key: string,
   userDef: Object | Function
 ) {
-  const shouldCache = !isServerRendering()
+  const shouldCache = !isServerRendering()   //服务端渲染
   if (typeof userDef === 'function') {
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
@@ -374,4 +381,6 @@ export function stateMixin (Vue: Class<Component>) {
       watcher.teardown()
     }
   }
+
+  console.log('0-2', '在Vue.prototype添加$data、$props、$set、$delete、$watch等实例方法');
 }

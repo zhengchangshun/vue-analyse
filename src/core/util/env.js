@@ -17,6 +17,7 @@ export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
 export const isPhantomJS = UA && /phantomjs/.test(UA)
 
 // Firefox has a "watch" function on Object.prototype...
+// 兼容性处理，判断watch方法是否是Object的原型上
 export const nativeWatch = ({}).watch
 
 export let supportsPassive = false
@@ -53,7 +54,12 @@ export const isServerRendering = () => {
 // detect devtools
 export const devtools = inBrowser && window.__VUE_DEVTOOLS_GLOBAL_HOOK__
 
-/* istanbul ignore next */
+/* istanbul ignore next
+* 检查是否是原生函数
+* Boolean.toString() 输入为："function Boolean() { [native code] }"
+**/
+
+
 export function isNative (Ctor: any): boolean {
   return typeof Ctor === 'function' && /native code/.test(Ctor.toString())
 }

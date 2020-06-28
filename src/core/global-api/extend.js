@@ -78,6 +78,8 @@ export function initExtend (Vue: GlobalAPI) {
     cachedCtors[SuperId] = Sub
     return Sub
   }
+
+  console.log('0-9','在Vue对象上添加静态方法extend');
 }
 
 function initProps (Comp) {

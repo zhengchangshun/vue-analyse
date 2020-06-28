@@ -10,6 +10,8 @@
  * of making flow understand it is not worth it.
  */
 
+// Diff算法
+
 import VNode, { cloneVNode } from './vnode'
 import config from '../config'
 import { SSR_ATTR } from 'shared/constants'
@@ -697,6 +699,8 @@ export function createPatchFunction (backend) {
     }
   }
 
+  //最终返回的patch方法
+  // 新的虚拟Dom与旧的虚拟Dom对比，得到真实的Dom，同时将旧的虚拟Dom更新
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
@@ -798,6 +802,7 @@ export function createPatchFunction (backend) {
     }
 
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
+    //最终返回一个虚拟dom
     return vnode.elm
   }
 }

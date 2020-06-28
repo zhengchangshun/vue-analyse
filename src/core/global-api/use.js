@@ -20,4 +20,6 @@ export function initUse (Vue: GlobalAPI) {
     installedPlugins.push(plugin)
     return this
   }
+
+  console.log('0-7','在Vue对象上添加静态方法use');
 }

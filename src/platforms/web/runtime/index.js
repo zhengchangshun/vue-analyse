@@ -28,13 +28,14 @@ Vue.config.getTagNamespace = getTagNamespace
 Vue.config.isUnknownElement = isUnknownElement
 
 // install platform runtime directives & components
-// 对象属性拷贝
-extend(Vue.options.directives, platformDirectives)  //指令
-extend(Vue.options.components, platformComponents)  //组件
+// 对象属性拷贝，添加全局的指令和组件
+extend(Vue.options.directives, platformDirectives)  //添加指令model、show到Vue.options.directives中
+extend(Vue.options.components, platformComponents)  //添加组件Transition,TransitionGroup到Vue.options.components
 
+console.log('0-14','扩展在Vue对象上静态属性directives、components');
 // install platform patch function
 // 使用虚拟dom更新真正的dom的核心算法
-Vue.prototype.__patch__ = inBrowser ? patch : noop  // noop是空函数
+Vue.prototype.__patch__ = inBrowser ? patch : noop  // noop是空函数   patch方法定义在 core/vdom/patch 方法中
 
 // public mount method
 // 原始的$mount方法，获得元素 ，调用挂载组件的方法
@@ -46,6 +47,7 @@ Vue.prototype.$mount = function (
   return mountComponent(this, el, hydrating)
 }
 
+console.log('0-15','在Vue.prototype添加__patch__、$mount方法');
 // devtools global hook
 /* istanbul ignore next */
 // vue devtools相关的操作

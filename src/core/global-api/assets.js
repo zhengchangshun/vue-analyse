@@ -31,4 +31,6 @@ export function initAssetRegisters (Vue: GlobalAPI) {
       }
     }
   })
+
+  console.log('0-10','在Vue对象上添加静态方法component、directive、filter');
 }

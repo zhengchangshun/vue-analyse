@@ -29,6 +29,7 @@ function build (builds) {
   let built = 0
   const total = builds.length
   const next = () => {
+    //递归打包所有的模式下的vue文件
     buildEntry(builds[built]).then(() => {
       built++
       if (built < total) {

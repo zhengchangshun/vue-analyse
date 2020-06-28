@@ -23,14 +23,15 @@ let uid = 0
  * and fires callback when the expression value changes.
  * This is used for both the $watch() api and directives.
  */
+// 定义 Watcher 类
 export default class Watcher {
   vm: Component;
   expression: string;
-  cb: Function;
+  cb: Function; // new Vue时传入的watch
   id: number;
   deep: boolean;
   user: boolean;
-  lazy: boolean;
+  lazy: boolean;  //计算属性、watch的不要立即执行
   sync: boolean;
   dirty: boolean;
   active: boolean;
@@ -90,6 +91,8 @@ export default class Watcher {
         )
       }
     }
+
+    //是否立即调用
     this.value = this.lazy
       ? undefined
       : this.get()
@@ -113,11 +116,12 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
+      // 依赖收集
       if (this.deep) {
         traverse(value)
       }
       popTarget()
-      this.cleanupDeps()
+      this.cleanupDeps()  //清空关联的deps数据
     }
     return value
   }
@@ -129,9 +133,9 @@ export default class Watcher {
     const id = dep.id
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
-      this.newDeps.push(dep)
+      this.newDeps.push(dep)  //让watcher关联dep
       if (!this.depIds.has(id)) {
-        dep.addSub(this)
+        dep.addSub(this)  //让dep关联watcher
       }
     }
   }
@@ -168,7 +172,7 @@ export default class Watcher {
     } else if (this.sync) {
       this.run()
     } else {
-      queueWatcher(this)
+      queueWatcher(this)  // 在scheduler.js中，异步调用run方法
     }
   }
 
@@ -192,7 +196,7 @@ export default class Watcher {
         this.value = value
         if (this.user) {
           try {
-            this.cb.call(this.vm, value, oldValue)
+            this.cb.call(this.vm, value, oldValue)  //执行回调
           } catch (e) {
             handleError(e, this.vm, `callback for watcher "${this.expression}"`)
           }
@@ -209,7 +213,7 @@ export default class Watcher {
    */
   evaluate () {
     this.value = this.get()
-    this.dirty = false
+    this.dirty = false   //脏数据检测
   }
 
   /**

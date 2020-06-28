@@ -141,4 +141,6 @@ export function eventsMixin (Vue: Class<Component>) {
     }
     return vm
   }
+
+  console.log('0-3', '在Vue.prototype添加$on、$once、$off、$emit等方法');
 }

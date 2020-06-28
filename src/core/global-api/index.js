@@ -61,7 +61,11 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue
 
+  //添加keep-live组件到Vue.options.components中
   extend(Vue.options.components, builtInComponents)
+
+
+  console.log('0-6','在Vue对象上添加静态方法util、set、delete、nextTick、observable，添加静态属性options');
 
   initUse(Vue)
   initMixin(Vue)

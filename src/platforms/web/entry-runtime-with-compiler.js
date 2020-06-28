@@ -67,7 +67,7 @@ Vue.prototype.$mount = function (
         mark('compile')
       }
 
-      // 讲模板字符串解析出来render方法
+      // 将模板字符串解析出来render方法
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,
@@ -89,6 +89,8 @@ Vue.prototype.$mount = function (
   return mount.call(this, el, hydrating)
 }
 
+console.log('0-16','在Vue.prototype上重写$mount方法，在重写方法中执行之前定义的$mount方法');
+
 /**
  * Get outerHTML of elements, taking care
  * of SVG elements in IE as well.
@@ -105,6 +107,8 @@ function getOuterHTML (el: Element): string {
 
 // Vue上添加静态方法compile
 Vue.compile = compileToFunctions
+
+console.log('0-17','在Vue上定义静态方法compile');
 
 // 返回最终的Vue构造函数
 export default Vue
