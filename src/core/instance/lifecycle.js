@@ -29,6 +29,7 @@ export function setActiveInstance(vm: Component) {
   }
 }
 
+// 初始化生命周期，生命周期相关的标识设置为初始状态
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
@@ -59,6 +60,7 @@ export function initLifecycle (vm: Component) {
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
+  // 通过调用__patch__对比（diff），生成最终的vnode
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
@@ -68,7 +70,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
 
-    // 执行 __patch__ 方法 ，定义在platform/runtime/index中
+    // 执行 __patch__ 方法 （本质是diff） ，定义在platform/runtime/index中
     if (!prevVnode) {
       // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
@@ -81,6 +83,8 @@ export function lifecycleMixin (Vue: Class<Component>) {
     if (prevEl) {
       prevEl.__vue__ = null
     }
+
+    // vm.$el的 __vue__ 属性指向vm
     if (vm.$el) {
       vm.$el.__vue__ = vm
     }
@@ -151,6 +155,7 @@ export function mountComponent (
   hydrating?: boolean
 ): Component {
   vm.$el = el
+  // 不存在render，解析不出render，抛出错误
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
@@ -171,6 +176,8 @@ export function mountComponent (
       }
     }
   }
+
+  //调用生命周期
   callHook(vm, 'beforeMount')
 
   let updateComponent
@@ -194,7 +201,7 @@ export function mountComponent (
     }
   } else {
     updateComponent = () => {
-      // _render 用于生成虚拟dom，_update 内部调用patch方法， 通过diff算法得到最终的dom
+      // _render 用于生成虚拟vnode，_update 内部调用patch方法， 通过diff算法得到最终的dom
       vm._update(vm._render(), hydrating)
     }
   }
@@ -206,6 +213,7 @@ export function mountComponent (
   // 渲染的watcher
   new Watcher(vm, updateComponent, noop, {
     before () {
+      // 这里可以控制第一次不用调用update相关的hooks
       if (vm._isMounted && !vm._isDestroyed) {
         callHook(vm, 'beforeUpdate')
       }
@@ -215,6 +223,8 @@ export function mountComponent (
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+
+  // 第一次虚拟dom还没有生成，因此$vnode为null，挂载dom元素。同时将_isMounted设置为ture
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')
@@ -329,6 +339,7 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+// 执行hooks
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()

@@ -401,16 +401,18 @@ function normalizeProps(options: Object, vm: ?Component) {
 
 /**
  * Normalize all injections into Object-based format
- * inject的处理同props类型
+ * 对inject的处理，数据格式的统一
  */
 function normalizeInject(options: Object, vm: ?Component) {
   const inject = options.inject;
   if (!inject) return;
   const normalized = options.inject = {};
+  // inject是数组时，转换成 {key:{from:key}}的形式
   if (Array.isArray(inject)) {
     for (let i = 0; i < inject.length; i++) {
       normalized[inject[i]] = { from: inject[i] };
     }
+    // 如果inject是对象，则返回一个对象，并且添加from属性
   } else if (isPlainObject(inject)) {
     for (const key in inject) {
       const val = inject[key];

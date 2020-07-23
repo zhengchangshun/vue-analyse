@@ -87,7 +87,7 @@ export class Observer {
 /**
  * Augment a target Object or Array by intercepting
  * the prototype chain using __proto__
- * 浏览器在存在__proto__属性
+ * 浏览器存在__proto__属性
  */
 function protoAugment (target, src: Object) {
   /* eslint-disable no-proto */
@@ -141,6 +141,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+ * 定义响应式属性
  */
 export function defineReactive (
   obj: Object,

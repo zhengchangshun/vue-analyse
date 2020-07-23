@@ -18,7 +18,7 @@ export function initMixin (Vue: Class<Component>) {
 
   Vue.prototype._init = function (options?: Object) {
 
-    console.log('1-1','Vue实例初始化');
+    console.log('1-2','Vue实例初始化');
 
     const vm: Component = this  //当前实例
     // a uid
@@ -52,6 +52,9 @@ export function initMixin (Vue: Class<Component>) {
         vm
       )
     }
+
+    // debugger;
+
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
@@ -66,7 +69,8 @@ export function initMixin (Vue: Class<Component>) {
     initRender(vm)      //初始化渲染，
     callHook(vm, 'beforeCreate')   //调用生命周期beforeCreate
     initInjections(vm) // resolve injections before data/props  //初始化注入器
-    initState(vm)  // 初始化状态数据。处理data、props、methods、computed、watch等
+    // 这里执行 =》 也说明在 beforeCreate 是拿不到data等
+    initState(vm)  // 初始化状态数据。处理data、props、methods、computed、watch等。
     initProvide(vm) // resolve provide after data/props  //初始化注入器
     callHook(vm, 'created') //调用生命周期created
 
@@ -132,6 +136,7 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
   }
 
   //正常情况下直接返回Vue的options对象
+  // debugger
   return options
 }
 

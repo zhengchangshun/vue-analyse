@@ -12,11 +12,11 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   template: string,
   options: CompilerOptions
 ): CompiledResult {
-  const ast = parse(template.trim(), options)
+  const ast = parse(template.trim(), options)  // 将template解析为ast树
   if (options.optimize !== false) {
-    optimize(ast, options)
+    optimize(ast, options)   // 对ast优化
   }
-  const code = generate(ast, options)
+  const code = generate(ast, options)  // 根据ast生成render、staticRenderFns
   return {
     ast,
     render: code.render,

@@ -38,8 +38,10 @@ Vue.prototype.$mount = function (
   // 不存在render方法的时候
   if (!options.render) {
     let template = options.template
+    // 通过在new Vue(options)中设置template的方式
     if (template) {
       if (typeof template === 'string') {
+         // template 是 #id的方式
         if (template.charAt(0) === '#') {
           template = idToTemplate(template)
           /* istanbul ignore if */
@@ -50,6 +52,7 @@ Vue.prototype.$mount = function (
             )
           }
         }
+        // dom元素
       } else if (template.nodeType) {
         template = template.innerHTML
       } else {
@@ -58,16 +61,18 @@ Vue.prototype.$mount = function (
         }
         return this
       }
+      // el 是 #id的方式
     } else if (el) {
       template = getOuterHTML(el)
     }
+    // 存在模板时
     if (template) {
       /* istanbul ignore if */
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
       }
 
-      // 将模板字符串解析出来render方法
+      // 将模板字符串解析出来render方法 、 staticRenderFns用来存放静态内容
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,

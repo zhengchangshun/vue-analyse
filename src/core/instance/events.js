@@ -9,8 +9,9 @@ import {
 } from '../util/index'
 import { updateListeners } from '../vdom/helpers/index'
 
+// 事件初始化
 export function initEvents (vm: Component) {
-  vm._events = Object.create(null)   //存储时间
+  vm._events = Object.create(null)   //存储事件
   vm._hasHookEvent = false
   // init parent attached events
   // 初始化父类的事件（可以忽略）
