@@ -128,6 +128,7 @@ function initProps (vm: Component, propsOptions: Object) {
 //设置代理后后续所有的关于data的（this.dataKey）读取操作，都实际操作的是this._data中的数据
 function initData (vm: Component) {
   let data = vm.$options.data
+  // 在 _init方法中，data返回一个高阶函数
   //判断data是否是函数，如果是则执行并返回结果，否则直接赋值。并设置同时_data的值
   //通过proxy代理后，后续data的 get、set方法实际都作用到了this._data上
   data = vm._data = typeof data === 'function'
@@ -287,7 +288,7 @@ export function defineComputed (
 // computed的getter方法的具体实现
 function createComputedGetter (key) {
   return function computedGetter () {
-    根据vm._computedWatchers中的key找到对应的computed
+    // 根据vm._computedWatchers中的key找到对应的computed
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
       // 脏值检测

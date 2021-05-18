@@ -17,9 +17,7 @@ export function initMixin (Vue: Class<Component>) {
   console.log('0-1' , '在Vue.prototype添加_init的实例方法');
 
   Vue.prototype._init = function (options?: Object) {
-
     console.log('1-2','Vue实例初始化');
-
     const vm: Component = this  //当前实例
     // a uid
     vm._uid = uid++  //唯一标识
@@ -37,7 +35,6 @@ export function initMixin (Vue: Class<Component>) {
     vm._isVue = true
     // merge options
     // 判断是否是组件
-    // debugger
     // 一般初始化new Vue(options)，是不会设置_isComponent属性的
     if (options && options._isComponent) {
       // optimize internal component instantiation
@@ -52,8 +49,6 @@ export function initMixin (Vue: Class<Component>) {
         vm
       )
     }
-
-    // debugger;
 
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
