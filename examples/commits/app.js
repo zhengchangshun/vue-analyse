@@ -19,32 +19,39 @@ var apiURL = 'https://api.github.com/repos/vuejs/vue/commits?per_page=3&sha='
 var vm = new Vue({
 
   el: '#demo',
-
+  props: {
+    // propsA: String,
+  },
   data: {
-    branches: ['master', 'dev'],
+    // branches: ['master', 'dev'],
     currentBranch: 'master',
-    commits: null,
-    test: {
-      b: 1
+    // commits: null,
+    // test: {
+    //   b: 1
+    // }
+  },
+  // mixins: [{
+  //   created: function () {
+  //     console.log('222')
+  //   },
+  //   watch: {
+  //     currentBranch() {
+  //       console.log(333)
+  //     }
+  //   },
+  // }],
+  computed: {
+    commitRecord() {
+      return this.currentBranch + "_test"
     }
   },
-  mixins:[{
-    created: function () {
-      console.log('222')
-    },
-    watch: {
-      currentBranch(){
-        console.log(333);
-      }
-    },
-  }],
   created: function () {
     this.fetchData()
   },
 
-  watch: {
-    currentBranch: 'fetchData'
-  },
+  // watch: {
+  //   currentBranch: 'fetchData'
+  // },
 
   filters: {
     truncate: function (v) {

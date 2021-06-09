@@ -260,7 +260,6 @@ strats.watch = function (
   if (process.env.NODE_ENV !== 'production') {
     assertObjectType(key, childVal, vm)
   }
-  debugger
   if (!parentVal) return childVal
   const ret = {}
   extend(ret, parentVal)
@@ -351,7 +350,6 @@ export function validateComponentName(name: string) {
  * 最终：将props转换成key-value的对象形式，并对key值做转换 （kebab-case 转成 camelCase）
  */
 function normalizeProps(options: Object, vm: ?Component) {
-  // debugger
   const props = options.props
   if (!props) return
   const res = {}

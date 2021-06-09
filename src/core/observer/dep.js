@@ -11,6 +11,7 @@ let uid = 0
  * directives subscribing to it.
  * 通过发布-订阅模式，将Watcher类型的数据添加到订阅列表中
  * notify时，循环执行订阅列表中的监听，本质是运行watcher的update方法。
+ * 收集依赖
  */
 export default class Dep {
   static target: ?Watcher;   //静态属性，Watcher类型

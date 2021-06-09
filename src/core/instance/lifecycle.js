@@ -346,6 +346,7 @@ export function callHook (vm: Component, hook: string) {
   const handlers = vm.$options[hook]
   const info = `${hook} hook`
   if (handlers) {
+    // 循环执行当前hook下的所有handle
     for (let i = 0, j = handlers.length; i < j; i++) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }

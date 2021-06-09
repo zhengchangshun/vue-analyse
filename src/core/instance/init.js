@@ -62,12 +62,12 @@ export function initMixin (Vue: Class<Component>) {
     initLifecycle(vm)   //初始化生命周期
     initEvents(vm)      //初始化事件
     initRender(vm)      //初始化渲染，
-    callHook(vm, 'beforeCreate')   //调用生命周期beforeCreate
+    callHook(vm, 'beforeCreate')   //调用生命周期 beforeCreate
     initInjections(vm) // resolve injections before data/props  //初始化注入器
-    // 这里执行 =》 也说明在 beforeCreate 是拿不到data等
+    // 这里执行 =》 也说明在 beforeCreate 是拿不到 data 等
     initState(vm)  // 初始化状态数据。处理data、props、methods、computed、watch等。
-    initProvide(vm) // resolve provide after data/props  //初始化注入器
-    callHook(vm, 'created') //调用生命周期created
+    initProvide(vm) // resolve provide after data/props  // 将 provider的设置到 vm 实例中
+    callHook(vm, 'created') // 调用生命周期 created
 
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -131,7 +131,6 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
   }
 
   //正常情况下直接返回Vue的options对象
-  // debugger
   return options
 }
 

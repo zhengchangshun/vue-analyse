@@ -164,10 +164,14 @@ export default class Watcher {
   /**
    * Subscriber interface.
    * Will be called when a dependency changes.
+   * data 中的属性发生变化，调用 set 方法。 - computed 时，lazy变为true
+   * 通常情况下，执行 queueWatcher 方法 ，本质执行 run 方法更新了 value 值
    */
   update () {
     /* istanbul ignore else */
+    // computed时: 因为第一次dirty为ture，lazy被设置为true。当computed对应的依赖更新时，则将dirty重新设置为true
     if (this.lazy) {
+      debugger
       this.dirty = true
     } else if (this.sync) {
       this.run()
@@ -194,6 +198,7 @@ export default class Watcher {
         // set new value
         const oldValue = this.value
         this.value = value
+        // 通常情况下。user为false， cb 为 noop。 watch才会执行下边逻辑
         if (this.user) {
           try {
             this.cb.call(this.vm, value, oldValue)  //执行回调
