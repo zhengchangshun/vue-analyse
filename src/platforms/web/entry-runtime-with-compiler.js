@@ -6,7 +6,7 @@ import { mark, measure } from 'core/util/perf'  //调试工具中使用
 
 import Vue from './runtime/index'
 import { query } from './util/index'
-//用来生成render的工具方法
+//用来生成 render 的工具方法
 import { compileToFunctions } from './compiler/index'
 import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
 
@@ -26,6 +26,7 @@ Vue.prototype.$mount = function (
   el = el && query(el)
 
   /* istanbul ignore if */
+  // 不能将 vue 挂载到 body、document上
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
@@ -38,7 +39,7 @@ Vue.prototype.$mount = function (
   // 不存在render方法的时候
   if (!options.render) {
     let template = options.template
-    // 通过在new Vue(options)中设置template的方式
+    // 通过template或者el获取Vue实例挂载的节点（内容）
     if (template) {
       if (typeof template === 'string') {
          // template 是 #id的方式
@@ -68,6 +69,7 @@ Vue.prototype.$mount = function (
     // 存在模板时
     if (template) {
       /* istanbul ignore if */
+      // 如果开启了performance,则记录编译开始
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
       }
@@ -75,15 +77,16 @@ Vue.prototype.$mount = function (
       // 将模板字符串解析出来render方法 、 staticRenderFns用来存放静态内容
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
-        shouldDecodeNewlines,
-        shouldDecodeNewlinesForHref,
-        delimiters: options.delimiters,
-        comments: options.comments
+        shouldDecodeNewlines,  // 浏览器情况下 false
+        shouldDecodeNewlinesForHref, // 浏览器情况下 true
+        delimiters: options.delimiters, // Vue 的 options 属性，一般为 undefined
+        comments: options.comments  // Vue 的 options 属性，一般为 undefined 。 为 true 时，将会保留html的注释
       }, this)
       options.render = render
       options.staticRenderFns = staticRenderFns
 
       /* istanbul ignore if */
+      // 如果开启了performance,则记录编译结束
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile end')
         measure(`vue ${this._name} compile`, 'compile', 'compile end')

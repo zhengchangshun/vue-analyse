@@ -38,12 +38,13 @@ console.log('0-14','扩展在Vue对象上静态属性directives、components');
 Vue.prototype.__patch__ = inBrowser ? patch : noop  // noop是空函数   patch方法定义在 core/vdom/patch 方法中
 
 // public mount method
-// 原始的$mount方法，获得元素 ，调用挂载组件的方法
+// 原始的 $mount方法，获得元素 ，调用挂载组件的方法
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
   el = el && inBrowser ? query(el) : undefined
+  // 其中this指向当前的Vue实例：vm
   return mountComponent(this, el, hydrating)
 }
 

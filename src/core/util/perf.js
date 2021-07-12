@@ -3,6 +3,7 @@ import { inBrowser } from './env'
 export let mark
 export let measure
 
+// 只在开发模式下有效
 if (process.env.NODE_ENV !== 'production') {
   const perf = inBrowser && window.performance
   /* istanbul ignore if */

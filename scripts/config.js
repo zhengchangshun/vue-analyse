@@ -2,10 +2,10 @@ const path = require('path')
 const buble = require('rollup-plugin-buble')
 const alias = require('rollup-plugin-alias')
 const cjs = require('rollup-plugin-commonjs')
-const replace = require('rollup-plugin-replace')
+const replace = require('rollup-plugin-replace')  // Replace strings in files while bundling them.
 const node = require('rollup-plugin-node-resolve')
 const flow = require('rollup-plugin-flow-no-whitespace')
-const version = process.env.VERSION || require('../package.json').version
+const version = process.env.VERSION || require('../package.json').version //通过package中获取version
 const weexVersion = process.env.WEEX_VERSION || require('../packages/weex-vue-framework/package.json').version
 
 const banner =
@@ -222,7 +222,7 @@ function genConfig (name) {
       replace({
         __WEEX__: !!opts.weex,
         __WEEX_VERSION__: weexVersion,
-        __VERSION__: version
+        __VERSION__: version //通过webpack 插件替换 全部变量
       }),
       flow(),
       alias(Object.assign({}, aliases, opts.alias))

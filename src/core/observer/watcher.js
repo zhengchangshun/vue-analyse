@@ -51,17 +51,20 @@ export default class Watcher {
     isRenderWatcher?: boolean
   ) {
     this.vm = vm
+    // 设置渲染 watcher
     if (isRenderWatcher) {
       vm._watcher = this
     }
+
+    // 在 vm 的 _watcher中添加当前的 watch实例
     vm._watchers.push(this)
     // options
     if (options) {
       this.deep = !!options.deep
       this.user = !!options.user
-      this.lazy = !!options.lazy
-      this.sync = !!options.sync
-      this.before = options.before
+      this.lazy = !!options.lazy // 为 computed 设计的
+      this.sync = !!options.sync // 为 watch 设计的
+      this.before = options.before // 为 watch 设计的，在 schedule 中调用
     } else {
       this.deep = this.user = this.lazy = this.sync = false
     }
@@ -83,7 +86,7 @@ export default class Watcher {
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = noop
-        process.env.NODE_ENV !== 'production' && warn(
+         process.env.NODE_ENV !== 'production' && warn(
           `Failed watching path: "${expOrFn}" ` +
           'Watcher only accepts simple dot-delimited paths. ' +
           'For full control, use a function instead.',
@@ -92,7 +95,9 @@ export default class Watcher {
       }
     }
 
-    //是否立即调用
+    //是否立即调用，
+    //computed 不会立即调用
+    // watch 的时候，执行 get方法，也即执行了 getter，进行了依赖收集，当监听的属性发生变化时，set 方法中触发了 watch.update()方法
     this.value = this.lazy
       ? undefined
       : this.get()
@@ -102,6 +107,7 @@ export default class Watcher {
    * Evaluate the getter, and re-collect dependencies.
    */
   get () {
+    // 把当前 watcher放入全局的 watcher
     pushTarget(this)
     let value
     const vm = this.vm
@@ -116,12 +122,13 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
-      // 依赖收集
+      // 针对 watch 的 deep 处理，对监听对象的内部属性的变化。
       if (this.deep) {
         traverse(value)
       }
+      // 把当前watcher从全局的watcher中移除
       popTarget()
-      this.cleanupDeps()  //清空关联的deps数据
+      this.cleanupDeps()  // 清空关联的deps数据
     }
     return value
   }
@@ -133,9 +140,9 @@ export default class Watcher {
     const id = dep.id
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
-      this.newDeps.push(dep)  //让watcher关联dep
+      this.newDeps.push(dep)  //让 watcher关联 dep
       if (!this.depIds.has(id)) {
-        dep.addSub(this)  //让dep关联watcher
+        dep.addSub(this)  //让 dep关联 watcher
       }
     }
   }
@@ -171,11 +178,11 @@ export default class Watcher {
     /* istanbul ignore else */
     // computed时: 因为第一次dirty为ture，lazy被设置为true。当computed对应的依赖更新时，则将dirty重新设置为true
     if (this.lazy) {
-      debugger
       this.dirty = true
-    } else if (this.sync) {
+    } else if (this.sync) {  // 同步，主要用于服务端渲染 SSR
       this.run()
     } else {
+      // 一般浏览器中的异步运行， 本质上就是异步执行 run
       queueWatcher(this)  // 在scheduler.js中，异步调用run方法
     }
   }
@@ -183,10 +190,12 @@ export default class Watcher {
   /**
    * Scheduler job interface.
    * Will be called by the scheduler.
+   * 新旧值不同时，触发 cb
    */
+  // 要不渲染、要么求值
   run () {
     if (this.active) {
-      const value = this.get()
+      const value = this.get() //重新获取当前getter的值
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
@@ -198,7 +207,7 @@ export default class Watcher {
         // set new value
         const oldValue = this.value
         this.value = value
-        // 通常情况下。user为false， cb 为 noop。 watch才会执行下边逻辑
+        // 通常情况下。user为 false， cb 为 noop。 watch才会执行下边逻辑
         if (this.user) {
           try {
             this.cb.call(this.vm, value, oldValue)  //执行回调

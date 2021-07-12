@@ -47,7 +47,7 @@ export class Observer {
     // 对数组的处理
     if (Array.isArray(value)) {
       //判断浏览器兼容性检测，判断是否存在__proto__属性
-      // 给数组类型设置  arrayMethods 方法
+      // 将value的 __proto__ 指向 arrayMethods
       if (hasProto) {
         // 通过原型链设置
         protoAugment(value, arrayMethods)
@@ -118,7 +118,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * Attempt to create an observer instance for a value,
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
- * 将传递进来的数据做响应式处理
+ * 将传递进来的数据 value 做响应式处理， 返回 Observe 对象
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   // 类型判断
@@ -126,7 +126,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     return
   }
   let ob: Observer | void
-  // value中存在__ob__属性 （非原型链），且该属性是Observer的实例
+  // value中存在 __ob__ 属性 （非原型链），且该属性是 Observer 的实例
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
@@ -137,7 +137,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     !value._isVue
   ) {
     // 关键代码
-    ob = new Observer(value)    //利用value生成一个 Observer 对象
+    ob = new Observer(value)    //利用 value生成一个 Observer 对象
   }
   if (asRootData && ob) {
     ob.vmCount++
@@ -172,6 +172,7 @@ export function defineReactive (
     val = obj[key]
   }
 
+  // 递归处理，对 val 做响应式处理
   let childOb = !shallow && observe(val)
 
   Object.defineProperty(obj, key, {

@@ -23,6 +23,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // config
   const configDef = {}
   configDef.get = () => config
+  //不能直接修改 Vue.config 的全局变量
   if (process.env.NODE_ENV !== 'production') {
     configDef.set = () => {
       warn(
@@ -42,17 +43,20 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     defineReactive
   }
 
+  // 设置全局的 set、 delete 方法，同vm实例的 $set、 $delete 方法
   Vue.set = set
   Vue.delete = del
   Vue.nextTick = nextTick
 
   // 2.6 explicit observable API
+  // 全局添加 observable 方法
   Vue.observable = <T>(obj: T): T => {
     observe(obj)
     return obj
   }
 
   Vue.options = Object.create(null)
+  // 初始化 Vue.options 的'component','directive', 'filter' 属性为空对象
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
   })
@@ -68,8 +72,8 @@ export function initGlobalAPI (Vue: GlobalAPI) {
 
   console.log('0-6','在Vue对象上添加静态方法util、set、delete、nextTick、observable，添加静态属性options');
 
-  initUse(Vue)
-  initMixin(Vue)
-  initExtend(Vue)
-  initAssetRegisters(Vue)
+  initUse(Vue)  // Vue.use()
+  initMixin(Vue) // Vue.mixin()
+  initExtend(Vue) // Vue.extend
+  initAssetRegisters(Vue)  // 注册组件、指令、过滤器
 }

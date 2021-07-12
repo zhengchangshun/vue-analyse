@@ -30,9 +30,11 @@ export function initExtend (Vue: GlobalAPI) {
       validateComponentName(name)
     }
 
+    // Sub类继承了Vue，则在Sub实例中可以通过原型链找到_init方法（来源于Vue的原型链）
     const Sub = function VueComponent (options) {
       this._init(options)
     }
+    // Sub类继续父类Vue，并修正constructor属性
     Sub.prototype = Object.create(Super.prototype)
     Sub.prototype.constructor = Sub
     Sub.cid = cid++

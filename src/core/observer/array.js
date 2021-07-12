@@ -55,7 +55,7 @@ methodsToPatch.forEach(function (method) {
     // 数组中添加新的元素，所以需要重新观察每个子元素
     if (inserted) ob.observeArray(inserted)
     // notify change
-    // 数组变化时，重新获取依赖的值
+    // 数组变化时，触发更新
     ob.dep.notify()
     return result
   })

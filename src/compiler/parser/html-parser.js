@@ -14,6 +14,7 @@ import { isNonPhrasingTag } from 'web/compiler/util'
 import { unicodeLetters } from 'core/util/lang'
 
 // Regular Expressions for parsing tags and attributes
+// 正则表达式，用于匹配属性，标签 、注释等
 const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
 const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z${unicodeLetters}]*`
 const qnameCapture = `((?:${ncname}\\:)?${ncname})`
@@ -53,12 +54,15 @@ export function parseHTML (html, options) {
   const stack = []
   const expectHTML = options.expectHTML
   const isUnaryTag = options.isUnaryTag || no
+  // 来检测一个标签是否是可以省略闭合标签的非一元标签
   const canBeLeftOpenTag = options.canBeLeftOpenTag || no
   let index = 0
   let last, lastTag
+  // 开启一个 while 循环，循环结束的条件是 html 为空，即 html 被 parse 完毕
   while (html) {
     last = html
     // Make sure we're not in a plaintext content element like script/style
+    // 确保即将 parse 的内容不是在纯文本标签里 (script,style,textarea)
     if (!lastTag || !isPlainTextElement(lastTag)) {
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
@@ -165,6 +169,7 @@ export function parseHTML (html, options) {
       parseEndTag(stackedTag, index - endTagLength, index)
     }
 
+    // 如果两者相等，则说明html 在经历循环体的代码之后没有任何改变
     if (html === last) {
       options.chars && options.chars(html)
       if (process.env.NODE_ENV !== 'production' && !stack.length && options.warn) {

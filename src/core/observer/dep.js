@@ -62,15 +62,16 @@ export default class Dep {
 // This is globally unique because only one watcher
 // can be evaluated at a time.
 Dep.target = null
+// 全局watcher
 const targetStack = []
 
-//将watcher入栈到targetStack中，并设置Dep.target属于为当前watcher
+//将 watcher入栈到 targetStack中，并设置 Dep.target属于为当前 watcher
 export function pushTarget (target: ?Watcher) {
   targetStack.push(target)
   Dep.target = target
 }
 
-//执行targetStack的出栈操作，并将出栈元素赋值给Dep.target
+//执行 targetStack 的出栈操作，并将出栈元素赋值给Dep.target
 export function popTarget () {
   targetStack.pop()
   Dep.target = targetStack[targetStack.length - 1]

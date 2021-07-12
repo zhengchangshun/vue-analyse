@@ -802,7 +802,7 @@ export function createPatchFunction (backend) {
     }
 
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
-    //最终返回一个虚拟dom
+    //最终返回一个虚拟 dom
     return vnode.elm
   }
 }

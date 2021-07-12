@@ -245,7 +245,6 @@ export function parse (
         closeElement(element)
       }
     },
-
     end (tag, start, end) {
       const element = stack[stack.length - 1]
       if (!inPre) {
@@ -263,7 +262,6 @@ export function parse (
       }
       closeElement(element)
     },
-
     chars (text: string, start: number, end: number) {
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
@@ -335,6 +333,7 @@ export function parse (
         }
       }
     },
+    // 对注释的处理
     comment (text: string, start, end) {
       const child: ASTText = {
         type: 3,

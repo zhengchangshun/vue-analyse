@@ -1666,7 +1666,6 @@ function validateComponentName(name) {
  * 最终：将props转换成key-value的对象形式，并对key值做转换 （kebab-case 转成 camelCase）
  */
 function normalizeProps(options, vm) {
-  // debugger
   var props = options.props;
   if (!props) { return; }
   var res = {};
@@ -1718,7 +1717,6 @@ function normalizeProps(options, vm) {
       vm
     );
   }
-  debugger
   options.props = res;
 }
 
@@ -7621,7 +7619,6 @@ function resolveConstructorOptions (Ctor) {
   }
 
   //正常情况下直接返回Vue的options对象
-  // debugger
   return options
 }
 

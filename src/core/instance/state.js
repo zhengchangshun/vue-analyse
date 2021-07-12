@@ -92,7 +92,6 @@ function initProps (vm: Component, propsOptions: Object) {
     if (process.env.NODE_ENV !== 'production') {
       const hyphenatedKey = hyphenate(key)   // 驼峰（camelCase）转成连线（kebab-case）
       // props是否是以下保留字：key,ref,slot,slot-scope,is
-      // props 不能设置为保留的关键字
       if (isReservedAttribute(hyphenatedKey) ||
           config.isReservedAttr(hyphenatedKey)) {
         warn(
@@ -292,7 +291,8 @@ export function defineComputed (
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
-// computed的 getter方法的具体实现。真正执行 computed计算的是在这里
+// computed 的 getter方法的具体实现。真正执行 computed计算的是在这里。
+// 因为 computed 初始化时，watcher 传入的是 {lazy：true}，如果 computed 没有被调用，则 computedGetter 不会执行，则 computed的值为 undefined
 function createComputedGetter (key) {
   return function computedGetter () {
     // 根据vm._computedWatchers中的key找到对应的computed
@@ -369,17 +369,18 @@ function createWatcher (
   handler: any,
   options?: Object
 ) {
-  // 处理 { immediate,deep,handler} 等对象形式的 watcher
+  // 处理 { immediate,deep,handler } 等对象形式的 watcher
   if (isPlainObject(handler)) {
     options = handler
     handler = handler.handler
   }
-  // 处理 'getList' 等字符串（函数句柄）形式的 watcher
+  // 处理 'getList' 等字符串（函数句柄）形式的 watcher ： 这也是为什么 initMethod 要在 initWatch 前执行
   if (typeof handler === 'string') {
     handler = vm[handler]
   }
 
-  // $watch方法定义当前页面的stateMixin方法中
+  // $watch方法定义当前页面的 stateMixin 方法中
+  // expOrFn 为 监听的属性
   return vm.$watch(expOrFn, handler, options)
 }
 
@@ -410,7 +411,7 @@ export function stateMixin (Vue: Class<Component>) {
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
 
-  // 在原型上添加$set、$delete方法
+  // 在原型上添加$watch方法
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,

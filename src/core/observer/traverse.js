@@ -24,7 +24,7 @@ function _traverse (val: any, seen: SimpleSet) {
     return
   }
 
-  // __ob__表示这个对象是响应式对象 ： 约定处理
+  // __ob__表示这个对象是响应式对象
   if (val.__ob__) {
     const depId = val.__ob__.dep.id
     // 循环引用不会递归遍历
@@ -34,7 +34,9 @@ function _traverse (val: any, seen: SimpleSet) {
     seen.add(depId)
   }
 
-  // 深度遍历，对每一个属性递归处理，添加到seen中
+  // 深度遍历，对每一个属性递归处理，添加到 seen 中
+  // 其中 val[i]、val[keys[i]] 会触发 getter 操作，触发依赖收集，会把当前的 watcher 添加到 Dep 中
+  // 当 val[i]、val[keys[i]] 更新时，触发 watcher 的 update 方法
   if (isA) {
     i = val.length
     while (i--) _traverse(val[i], seen)

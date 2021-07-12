@@ -44,6 +44,7 @@ let timerFunc
 
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
+  // timerFunc 执行后 flushCallbacks 会被添加到微任务队列中
   timerFunc = () => {
     p.then(flushCallbacks)
     // In problematic UIWebViews, Promise.then doesn't completely break, but

@@ -105,12 +105,13 @@ export function toNumber (val: string): number | string {
  * is in that map.
  * 判断数据是否存在缓存的数据中
  * eg. 判断字符串是否为内置的html元素
+ * 柯里化处理 ：缓存map，避免每次都操作list的遍历，直接从map中取值
  */
 export function makeMap (
   str: string,
   expectsLowerCase?: boolean
 ): (key: string) => true | void {
-  const map = Object.create(null)
+  const map = Object.create(null)  // 闭包存储
   const list: Array<string> = str.split(',')
   for (let i = 0; i < list.length; i++) {
     map[list[i]] = true
@@ -284,6 +285,7 @@ export const identity = (_: any) => _
 
 /**
  * Generate a string containing static keys from compiler modules.
+ * 将 modules 的 staticKeys 通过 . 拼接成字符串
  */
 export function genStaticKeys (modules: Array<ModuleOptions>): string {
   return modules.reduce((keys, m) => {

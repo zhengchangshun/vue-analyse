@@ -16,11 +16,11 @@ export const baseOptions: CompilerOptions = {
   expectHTML: true,
   modules,
   directives,
-  isPreTag,
-  isUnaryTag,
-  mustUseProp,
-  canBeLeftOpenTag,
-  isReservedTag,
+  isPreTag,  // 是否是 pre 标签
+  isUnaryTag, // 是否是 特殊标签
+  mustUseProp, // 不同元素绑定值不同，input - value， checkbox - checked等
+  canBeLeftOpenTag, // 是否是 特殊标签
+  isReservedTag,  // 是否是保留字的标签
   getTagNamespace,
   staticKeys: genStaticKeys(modules)
 }

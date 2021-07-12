@@ -21,16 +21,19 @@ function createFunction (code, errors) {
 export function createCompileToFunctionFn (compile: Function): Function {
   const cache = Object.create(null)
 
+  // 这里是 compileToFunctions 方法的具体实现
   return function compileToFunctions (
-    template: string,
-    options?: CompilerOptions,
-    vm?: Component
+    template: string,  // 模板字符串
+    options?: CompilerOptions, // 编译options
+    vm?: Component  // 当前的 vm 实例
   ): CompiledFunctionResult {
     options = extend({}, options)
     const warn = options.warn || baseWarn
     delete options.warn
 
     /* istanbul ignore if */
+    // csp 安全策略的测试 。检测 new Function() 是否可用
+    // 如果你的策略比较严格，那么 new Function() 将会受到影响，从而不能够使用。但是将模板字符串编译成渲染函数又依赖 new Function()
     if (process.env.NODE_ENV !== 'production') {
       // detect possible CSP restriction
       try {
@@ -49,17 +52,28 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // check cache
+    // options.delimiters 可以默认当做undefined来处理
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
+
+    // 检查缓存
     if (cache[key]) {
       return cache[key]
     }
 
     // compile
+    // 通过 ast 转换，其中options 为 baseOptions 与 vm.options 的合并
+    // compiled 的 结构为：
+    //     {
+    //       ast,
+    //       render: code.render,
+    //       staticRenderFns: code.staticRenderFns
+    //     }
     const compiled = compile(template, options)
 
     // check compilation errors/tips
+    // warn 和 tip
     if (process.env.NODE_ENV !== 'production') {
       if (compiled.errors && compiled.errors.length) {
         if (options.outputSourceRange) {
@@ -88,6 +102,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // turn code into functions
+    // 将ast解析之后的函数字符串，重新变为函数
     const res = {}
     const fnGenErrors = []
     res.render = createFunction(compiled.render, fnGenErrors)
@@ -99,6 +114,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     // this should only happen if there is a bug in the compiler itself.
     // mostly for codegen development use
     /* istanbul ignore if */
+    // 编译报错
     if (process.env.NODE_ENV !== 'production') {
       if ((!compiled.errors || !compiled.errors.length) && fnGenErrors.length) {
         warn(
@@ -108,7 +124,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
         )
       }
     }
-
+    // 将编译结果存储在cache对象中，同时返回res
     return (cache[key] = res)
   }
 }

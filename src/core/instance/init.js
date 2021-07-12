@@ -34,17 +34,17 @@ export function initMixin (Vue: Class<Component>) {
     // a flag to avoid this being observed
     vm._isVue = true
     // merge options
-    // 判断是否是组件
     // 一般初始化new Vue(options)，是不会设置_isComponent属性的
     if (options && options._isComponent) {
+      // 判断是否是组件
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
       initInternalComponent(vm, options)
     } else {
-      //合并options
+      //合并 options
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
+        resolveConstructorOptions(vm.constructor),  // 获取全局的options。即注册的全局组件、mixin等 Vue.options
         options || {},
         vm
       )
@@ -76,7 +76,7 @@ export function initMixin (Vue: Class<Component>) {
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
 
-    // 当el存在时，调用$mount方法
+    // 当 el存在时，自动调用 $mount方法
     // $mount方法定义在 platforms/web/runtime/index中，组件的挂载
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)

@@ -6,10 +6,12 @@ import { createCompileToFunctionFn } from './to-function'
 
 export function createCompilerCreator (baseCompile: Function): Function {
   return function createCompiler (baseOptions: CompilerOptions) {
+    // 这里是 compile 方法的具体实现
     function compile (
       template: string,
       options?: CompilerOptions
     ): CompiledResult {
+       // ./index 中传递的 baseOptions 参数
       const finalOptions = Object.create(baseOptions)
       const errors = []
       const tips = []
@@ -37,11 +39,13 @@ export function createCompilerCreator (baseCompile: Function): Function {
           }
         }
         // merge custom modules
+        // 合并 vm 的 options 中的 modules
         if (options.modules) {
           finalOptions.modules =
             (baseOptions.modules || []).concat(options.modules)
         }
         // merge custom directives
+        // 合并 vm 的 options 中的 modules
         if (options.directives) {
           finalOptions.directives = extend(
             Object.create(baseOptions.directives || null),
@@ -49,6 +53,7 @@ export function createCompilerCreator (baseCompile: Function): Function {
           )
         }
         // copy other options
+        // 拷贝 vm 的options 中的其他属性
         for (const key in options) {
           if (key !== 'modules' && key !== 'directives') {
             finalOptions[key] = options[key]
