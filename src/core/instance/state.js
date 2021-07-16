@@ -418,11 +418,12 @@ export function stateMixin (Vue: Class<Component>) {
     options?: Object
   ): Function {
     const vm: Component = this
+    // watch 是对象的形式
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options)
     }
     options = options || {}
-    options.user = true
+    options.user = true   // watcher 中设置 user = true
     const watcher = new Watcher(vm, expOrFn, cb, options)
     //立即执行 watch
     if (options.immediate) {

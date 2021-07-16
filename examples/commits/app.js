@@ -164,3 +164,11 @@ var vm = new Vue({
     }
   }
 })
+
+vm.$once('test',function () {
+  console.log('test handel')
+})
+
+setTimeout(() => {
+    vm.$emit('test')
+}, 2000)

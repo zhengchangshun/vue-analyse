@@ -56,7 +56,7 @@ export default class Watcher {
       vm._watcher = this
     }
 
-    // 在 vm 的 _watcher中添加当前的 watch实例
+    // 在 vm 的 _watcher 中添加当前的 watch 实例
     vm._watchers.push(this)
     // options
     if (options) {
@@ -96,8 +96,8 @@ export default class Watcher {
     }
 
     //是否立即调用，
-    //computed 不会立即调用
-    // watch 的时候，执行 get方法，也即执行了 getter，进行了依赖收集，当监听的属性发生变化时，set 方法中触发了 watch.update()方法
+    // computed 不会立即调用
+    // watch 、render watcher 的时候，执行 get方法，也即执行了 getter，进行了依赖收集，当监听的属性发生变化时，set 方法中触发了 watch.update()方法
     this.value = this.lazy
       ? undefined
       : this.get()
@@ -128,7 +128,7 @@ export default class Watcher {
       }
       // 把当前watcher从全局的watcher中移除
       popTarget()
-      this.cleanupDeps()  // 清空关联的deps数据
+      this.cleanupDeps()  // 清空关联的 deps数据
     }
     return value
   }

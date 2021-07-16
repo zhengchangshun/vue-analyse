@@ -78,7 +78,7 @@ export class Observer {
 
   /**
    * Observe a list of Array items.
-   * 如果是数组，怎么对数组的每个元素 调用 observe 方法 （new Observe，本质做响应式处理）
+   * 如果是数组，怎么对数组的每个元素 调用 observe 方法 （new Observe，本质做响应式处理） ， 递归
    */
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -262,7 +262,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
   }
   // 如果 key 不在 target 中，通过响应式方法处理
   defineReactive(ob.value, key, val)
-  ob.dep.notify()
+  ob.dep.notify()   // 触发对应的 watcher 更新
   return val
 }
 

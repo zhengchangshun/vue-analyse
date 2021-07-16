@@ -103,6 +103,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     }
   }
 
+  // destroy 中，清空 watcher、VNode、
   Vue.prototype.$destroy = function () {
     const vm: Component = this
     if (vm._isBeingDestroyed) {
