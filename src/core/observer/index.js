@@ -51,7 +51,7 @@ export class Observer {
       if (hasProto) {
         // 通过原型链设置
         protoAugment(value, arrayMethods)
-      } else {
+      } else { 
         //重写当前数组元素的方法（arrayKeys中的方法）
         copyAugment(value, arrayMethods, arrayKeys)
       }

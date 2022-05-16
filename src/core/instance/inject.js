@@ -65,7 +65,7 @@ export function resolveInject (inject: any, vm: Component): ?Object {
         source = source.$parent
       }
 
-      //一直递归到根节点还没有找到provider，则source为 undefined
+      //一直递归到根节点还没有找到 provider，则source为 undefined
       if (!source) {
         // from 属性找不到，降级查找default
         if ('default' in inject[key]) {

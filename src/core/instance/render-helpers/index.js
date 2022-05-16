@@ -15,7 +15,7 @@ import { resolveScopedSlots } from './resolve-slots'
 export function installRenderHelpers (target: any) {
   target._o = markOnce
   target._n = toNumber
-  target._s = toString
+  target._s = toString  // 用于提取 {{xxx}} 中的内容
   target._l = renderList
   target._t = renderSlot
   target._q = looseEqual
@@ -24,8 +24,8 @@ export function installRenderHelpers (target: any) {
   target._f = resolveFilter
   target._k = checkKeyCodes
   target._b = bindObjectProps
-  target._v = createTextVNode
-  target._e = createEmptyVNode
+  target._v = createTextVNode  // 用于创建文本节点
+  target._e = createEmptyVNode  // 用于创建空节点
   target._u = resolveScopedSlots
   target._g = bindObjectListeners
 }

@@ -78,7 +78,7 @@ Vue.prototype.$mount = function (
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,  // 浏览器情况下 false
-        shouldDecodeNewlinesForHref, // 浏览器情况下 true
+        shouldDecodeNewlinesForHref, // 浏览器情况下 false
         delimiters: options.delimiters, // Vue 的 options 属性，一般为 undefined
         comments: options.comments  // Vue 的 options 属性，一般为 undefined 。 为 true 时，将会保留html的注释
       }, this)

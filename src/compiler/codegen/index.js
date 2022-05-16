@@ -46,6 +46,7 @@ export function generate (
   const state = new CodegenState(options)
   const code = ast ? genElement(ast, state) : '_c("div")'
   return {
+    // 通过 with 注入 this 对象
     render: `with(this){return ${code}}`,
     staticRenderFns: state.staticRenderFns
   }

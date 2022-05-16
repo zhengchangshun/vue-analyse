@@ -9,6 +9,7 @@ type CompiledFunctionResult = {
   staticRenderFns: Array<Function>;
 };
 
+// 通过 code 创建函数，如果发生错误则收集在 errors 中
 function createFunction (code, errors) {
   try {
     return new Function(code)
@@ -24,7 +25,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
   // 这里是 compileToFunctions 方法的具体实现
   return function compileToFunctions (
     template: string,  // 模板字符串
-    options?: CompilerOptions, // 编译options
+    options?: CompilerOptions, // 编译 options
     vm?: Component  // 当前的 vm 实例
   ): CompiledFunctionResult {
     options = extend({}, options)
@@ -52,12 +53,12 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // check cache
-    // options.delimiters 可以默认当做undefined来处理
+    // options.delimiters 可以默认当做 undefined来处理
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
 
-    // 检查缓存
+    // 缓存字符串模板的编译结果，防止重复编译，提升性能
     if (cache[key]) {
       return cache[key]
     }
@@ -73,7 +74,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     const compiled = compile(template, options)
 
     // check compilation errors/tips
-    // warn 和 tip
+    // 检查使用 compile 对模板进行编译的过程中是否存在错误和提示的，如果存在那么需要将其打印出来
     if (process.env.NODE_ENV !== 'production') {
       if (compiled.errors && compiled.errors.length) {
         if (options.outputSourceRange) {
@@ -102,10 +103,14 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // turn code into functions
-    // 将ast解析之后的函数字符串，重新变为函数
+    // 将 ast解析之后的函数字符串，重新变为函数
     const res = {}
     const fnGenErrors = []
+    // res.render 是 new Function（compiled.render）的结果， fnGenErrors对错误信息收集
+    // compiled.render 是一个 函数体的字符串
     res.render = createFunction(compiled.render, fnGenErrors)
+    // res.staticRenderFns 是遍历 compiled.staticRenderFns，执行 new Function（code）的结果， fnGenErrors对错误信息收集
+    // staticRenderFns 的主要作用是渲染优化
     res.staticRenderFns = compiled.staticRenderFns.map(code => {
       return createFunction(code, fnGenErrors)
     })

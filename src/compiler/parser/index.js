@@ -78,21 +78,22 @@ export function parse (
   const isReservedTag = options.isReservedTag || no
   maybeComponent = (el: ASTElement) => !!el.component || !isReservedTag(el.tag)
 
-  transforms = pluckModuleFunction(options.modules, 'transformNode')
-  preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
-  postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
+  transforms = pluckModuleFunction(options.modules, 'transformNode')   // 获取 modules 中 transformNode 方法的集合
+  preTransforms = pluckModuleFunction(options.modules, 'preTransformNode') // 获取 modules 中 preTransformNode 方法的集合
+  postTransforms = pluckModuleFunction(options.modules, 'postTransformNode') // 获取 modules 中 postTransformNode 方法的集合
 
-  delimiters = options.delimiters
+  delimiters = options.delimiters   //插值的符号，默认 {{ }}
 
   const stack = []
   const preserveWhitespace = options.preserveWhitespace !== false
   const whitespaceOption = options.whitespace
   let root
-  let currentParent
+  let currentParent  // 用于存放子节点
   let inVPre = false
   let inPre = false
   let warned = false
 
+  // 只提示一次
   function warnOnce (msg, range) {
     if (!warned) {
       warned = true
@@ -149,6 +150,7 @@ export function parse (
   }
 
   function checkRootConstraints (el) {
+    // 不能使用 slot 、template 作为根组件
     if (el.tag === 'slot' || el.tag === 'template') {
       warnOnce(
         `Cannot use <${el.tag}> as component root element because it may ` +
@@ -156,6 +158,7 @@ export function parse (
         { start: el.start }
       )
     }
+    // 不能将 v-for 作用于根组件
     if (hasOwn(el.attrsMap, 'v-for')) {
       warnOnce(
         'Cannot use v-for on stateful component root element because ' +
@@ -174,6 +177,8 @@ export function parse (
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
     outputSourceRange: options.outputSourceRange,
+
+    // 处理各种指令。
     start (tag, attrs, unary, start) {
       // check namespace.
       // inherit parent ns if there is one
@@ -190,6 +195,7 @@ export function parse (
         element.ns = ns
       }
 
+      // 忽略
       if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
         element.start = start
         element.rawAttrsMap = element.attrsList.reduce((cumulated, attr) => {
@@ -198,6 +204,7 @@ export function parse (
         }, {})
       }
 
+      // 忽略
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true
         process.env.NODE_ENV !== 'production' && warn(
@@ -209,6 +216,7 @@ export function parse (
       }
 
       // apply pre-transforms
+      // 处理各种指令、 v-model、v-if、v-for等
       for (let i = 0; i < preTransforms.length; i++) {
         element = preTransforms[i](element, options) || element
       }
@@ -231,13 +239,14 @@ export function parse (
         processOnce(element)
       }
 
+      // 设置第一个元素为根元素
       if (!root) {
         root = element
         if (process.env.NODE_ENV !== 'production') {
           checkRootConstraints(root)
         }
       }
-
+      // 非闭合标签，存储当前标签名。用于构造父子关系使用
       if (!unary) {
         currentParent = element
         stack.push(element)
@@ -245,6 +254,8 @@ export function parse (
         closeElement(element)
       }
     },
+
+    // 确定父子节点关系
     end (tag, start, end) {
       const element = stack[stack.length - 1]
       if (!inPre) {
@@ -262,6 +273,7 @@ export function parse (
       }
       closeElement(element)
     },
+    // 对文本部分的处理
     chars (text: string, start: number, end: number) {
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
@@ -287,7 +299,7 @@ export function parse (
       ) {
         return
       }
-      const children = currentParent.children
+      const children = currentParent.children // 获取当前节点的父节点中的children属性，目的是将当前文本添加到 children中
       if (inPre || text.trim()) {
         text = isTextTag(currentParent) ? text : decodeHTMLCached(text)
       } else if (!children.length) {
@@ -311,6 +323,7 @@ export function parse (
         }
         let res
         let child: ?ASTNode
+        // 创建当前文件的 ASTNode，添加到父节点的 children 中
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
           child = {
             type: 2,
@@ -344,18 +357,23 @@ export function parse (
         child.start = start
         child.end = end
       }
+      // 存储注释
       currentParent.children.push(child)
     }
   })
+
+  // 根节点，包含所有 AST 关系
   return root
 }
 
+//处理 v-pre 指令： 找到 v-pre属性, 并删除该属性
 function processPre (el) {
   if (getAndRemoveAttr(el, 'v-pre') != null) {
     el.pre = true
   }
 }
 
+//处理属性：  从 attrsList 生成 attrs, 对 value转换成字符串
 function processRawAttrs (el) {
   const list = el.attrsList
   const len = list.length
@@ -401,6 +419,7 @@ export function processElement (
   return element
 }
 
+//处理 key：
 function processKey (el) {
   const exp = getBindingAttr(el, 'key')
   if (exp) {
@@ -428,6 +447,7 @@ function processKey (el) {
   }
 }
 
+//处理 ref：
 function processRef (el) {
   const ref = getBindingAttr(el, 'ref')
   if (ref) {
@@ -436,6 +456,7 @@ function processRef (el) {
   }
 }
 
+//处理 v-for：
 export function processFor (el: ASTElement) {
   let exp
   if ((exp = getAndRemoveAttr(el, 'v-for'))) {
@@ -458,6 +479,7 @@ type ForParseResult = {
   iterator2?: string;
 };
 
+// 解析 v-for：
 export function parseFor (exp: string): ?ForParseResult {
   const inMatch = exp.match(forAliasRE)
   if (!inMatch) return
@@ -477,6 +499,7 @@ export function parseFor (exp: string): ?ForParseResult {
   return res
 }
 
+//处理 v-if 等：
 function processIf (el) {
   const exp = getAndRemoveAttr(el, 'v-if')
   if (exp) {
@@ -537,6 +560,7 @@ export function addIfCondition (el: ASTElement, condition: ASTIfCondition) {
   el.ifConditions.push(condition)
 }
 
+//处理 v-once：
 function processOnce (el) {
   const once = getAndRemoveAttr(el, 'v-once')
   if (once != null) {
@@ -544,6 +568,7 @@ function processOnce (el) {
   }
 }
 
+//处理 slot：
 function processSlot (el) {
   if (el.tag === 'slot') {
     el.slotName = getBindingAttr(el, 'name')
@@ -636,6 +661,7 @@ function nodeHas$Slot (node): boolean {
   return false
 }
 
+//处理 slot：
 function processScopedSlots (el) {
   // 1. group children by slot target
   const groups: any = {}
@@ -663,6 +689,7 @@ function processScopedSlots (el) {
   }
 }
 
+//处理 is：动态组件
 function processComponent (el) {
   let binding
   if ((binding = getBindingAttr(el, 'is'))) {
@@ -673,6 +700,7 @@ function processComponent (el) {
   }
 }
 
+//处理 属性：
 function processAttrs (el) {
   const list = el.attrsList
   let i, l, name, rawName, value, modifiers, isProp, syncGen
@@ -820,6 +848,7 @@ function makeAttrsMap (attrs: Array<Object>): Object {
 }
 
 // for script (e.g. type="x/template") or style, do not decode content
+// script、style标签不处理
 function isTextTag (el): boolean {
   return el.tag === 'script' || el.tag === 'style'
 }

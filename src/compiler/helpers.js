@@ -6,11 +6,12 @@ import { parseFilters } from './parser/filter-parser'
 type Range = { start?: number, end?: number };
 
 /* eslint-disable no-unused-vars */
+// 打印编译错误
 export function baseWarn (msg: string, range?: Range) {
   console.error(`[Vue compiler]: ${msg}`)
 }
 /* eslint-enable no-unused-vars */
-
+// 获取Array中默写非空属性的集合
 export function pluckModuleFunction<F: Function> (
   modules: ?Array<Object>,
   key: string
@@ -20,22 +21,25 @@ export function pluckModuleFunction<F: Function> (
     : []
 }
 
+// 给 props 属性添加 数组元素 {name,value}，并记录位置
 export function addProp (el: ASTElement, name: string, value: string, range?: Range) {
   (el.props || (el.props = [])).push(rangeSetItem({ name, value }, range))
   el.plain = false
 }
-
+// 给 attrs 属性添加 数组元素 {name,value}，并记录位置
 export function addAttr (el: ASTElement, name: string, value: any, range?: Range) {
   (el.attrs || (el.attrs = [])).push(rangeSetItem({ name, value }, range))
   el.plain = false
 }
 
 // add a raw attr (use this in preTransforms)
+// attrsMap,attrsList 中添加属性
 export function addRawAttr (el: ASTElement, name: string, value: any, range?: Range) {
   el.attrsMap[name] = value
   el.attrsList.push(rangeSetItem({ name, value }, range))
 }
 
+// 给 directives 添加属性
 export function addDirective (
   el: ASTElement,
   name: string,
@@ -49,6 +53,7 @@ export function addDirective (
   el.plain = false
 }
 
+// 添加事件
 export function addHandler (
   el: ASTElement,
   name: string,
@@ -114,6 +119,7 @@ export function addHandler (
 
   const handlers = events[name]
   /* istanbul ignore if */
+  // 调整优先级
   if (Array.isArray(handlers)) {
     important ? handlers.unshift(newHandler) : handlers.push(newHandler)
   } else if (handlers) {
@@ -125,6 +131,7 @@ export function addHandler (
   el.plain = false
 }
 
+// 获取 v-bind:XXX :XXX 的属性
 export function getRawBindingAttr (
   el: ASTElement,
   name: string
@@ -162,8 +169,10 @@ export function getAndRemoveAttr (
   removeFromMap?: boolean
 ): ?string {
   let val
+  // 判断 属性是否存在
   if ((val = el.attrsMap[name]) != null) {
     const list = el.attrsList
+    // 通过遍历 attrsList 找到 name 相同的元素，删除
     for (let i = 0, l = list.length; i < l; i++) {
       if (list[i].name === name) {
         list.splice(i, 1)
@@ -171,12 +180,14 @@ export function getAndRemoveAttr (
       }
     }
   }
+  // 删除属性
   if (removeFromMap) {
     delete el.attrsMap[name]
   }
   return val
 }
 
+// 给 item 对象添加 start 、end 属性，并返回 item
 function rangeSetItem (
   item: any,
   range?: { start?: number, end?: number }

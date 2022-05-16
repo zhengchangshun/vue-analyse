@@ -124,6 +124,7 @@ export function createPatchFunction (backend) {
 
   let creatingElmInVPre = 0
 
+  // 通过 VNode 创建真正的 HTML元素 并插入到 页面中
   function createElm (
     vnode,
     insertedVnodeQueue,
@@ -209,6 +210,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 将自定义组件转换成 html 元素
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
     if (isDef(i)) {

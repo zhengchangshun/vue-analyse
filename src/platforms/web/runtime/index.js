@@ -34,7 +34,7 @@ extend(Vue.options.components, platformComponents)  //添加组件Transition,Tra
 
 console.log('0-14','扩展在Vue对象上静态属性directives、components');
 // install platform patch function
-// 使用虚拟dom更新真正的dom的核心算法
+//  
 Vue.prototype.__patch__ = inBrowser ? patch : noop  // noop是空函数   patch方法定义在 core/vdom/patch 方法中
 
 // public mount method
