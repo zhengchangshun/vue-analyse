@@ -20,19 +20,19 @@ import {
   pluckModuleFunction
 } from '../helpers'
 
-export const onRE = /^@|^v-on:/
-export const dirRE = /^v-|^@|^:|^\./
-export const forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/
-export const forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/
+export const onRE = /^@|^v-on:/    // 匹配 @、 v-on
+export const dirRE = /^v-|^@|^:|^\./  // 匹配指令  @、 :、 v-
+export const forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/  // 匹配 v-for 当中的 in 或者 of 前后的内容
+export const forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/   // 匹配 v-for 当中的 属性值  如：(item, index )
 const stripParensRE = /^\(|\)$/g
 
-const argRE = /:(.*)$/
-export const bindRE = /^:|^\.|^v-bind:/
-const propBindRE = /^\./
-const modifierRE = /\.[^.]+/g
+const argRE = /:(.*)$/  //argRE正则用来匹配指令编写中的参数，并且拥有一个捕获组，用来捕获参数的名字。
+export const bindRE = /^:|^\.|^v-bind:/ // 匹配以字符:或字符串 v-bind: 开头的字符串，主要用来检测一个标签的属性是否是绑定(v-bind)。
+const propBindRE = /^\./  // 匹配 .
+const modifierRE = /\.[^.]+/g  // 该正则用来匹配修饰符的
 
-const lineBreakRE = /[\r\n]/
-const whitespaceRE = /\s+/g
+const lineBreakRE = /[\r\n]/  // 换行
+const whitespaceRE = /\s+/g   // 多个空格
 
 const decodeHTMLCached = cached(he.decode)
 
@@ -53,13 +53,13 @@ export function createASTElement (
   parent: ASTElement | void
 ): ASTElement {
   return {
-    type: 1,
-    tag,
-    attrsList: attrs,
+    type: 1,   //  HTML 节点
+    tag,  // 标签名称
+    attrsList: attrs, // 属性
     attrsMap: makeAttrsMap(attrs),
     rawAttrsMap: {},
-    parent,
-    children: []
+    parent, // 父节点
+    children: []  // 子节点列表
   }
 }
 
@@ -84,11 +84,11 @@ export function parse (
 
   delimiters = options.delimiters   //插值的符号，默认 {{ }}
 
-  const stack = []
+  const stack = []  // 用于存储 AstNode 结构
   const preserveWhitespace = options.preserveWhitespace !== false
   const whitespaceOption = options.whitespace
   let root
-  let currentParent  // 用于存放子节点
+  let currentParent  // 用于存放当前字节的的父节点，该变量维护元素描述对象之间的父子关系
   let inVPre = false
   let inPre = false
   let warned = false
@@ -101,13 +101,17 @@ export function parse (
     }
   }
 
+  // 匹配到闭合标签时，通过 currentParent 构造父子节点关系
   function closeElement (element) {
+    // 忽略
     if (!inVPre && !element.processed) {
       element = processElement(element, options)
     }
     // tree management
+    // 当前存储标签的堆栈不为空，且不是 根节点
     if (!stack.length && element !== root) {
       // allow root elements with v-if, v-else-if and v-else
+      // 如果定义多个根元素，只能够保证最终只渲染其中一个元素，那就是在多个根元素之间使用 v-if 或 v-else-if 或 v-else 
       if (root.if && (element.elseif || element.else)) {
         if (process.env.NODE_ENV !== 'production') {
           checkRootConstraints(element)
@@ -132,8 +136,9 @@ export function parse (
         const name = element.slotTarget || '"default"'
         ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element
       } else {
-        currentParent.children.push(element)
-        element.parent = currentParent
+        // 这里是关键。stack 中的最有一个元素（currentParent）作为父节点 存储 element 元素
+        currentParent.children.push(element) //  父元素的 children 中 存储字节点
+        element.parent = currentParent // 字节的 parent 属性设置为父节点
       }
     }
     // check pre state
@@ -149,6 +154,7 @@ export function parse (
     }
   }
 
+  // 对根节点的校验
   function checkRootConstraints (el) {
     // 不能使用 slot 、template 作为根组件
     if (el.tag === 'slot' || el.tag === 'template') {
@@ -178,24 +184,30 @@ export function parse (
     shouldKeepComment: options.comments,
     outputSourceRange: options.outputSourceRange,
 
-    // 处理各种指令。
+    // 处理各种指令。创建 ASTNode 节点关系
     start (tag, attrs, unary, start) {
       // check namespace.
       // inherit parent ns if there is one
+      // 标签的命名空间，
+      // 如果当前元素存在父级并且父级元素存在命名空间，则使用父级的命名空间作为当前元素的命名空间。
+      // 或者通过 platformGetTagNamespace 获取命名空间， platformGetTagNamespace只会获取 svg 和 math 这两个标签的命名空间。
+      // 因此 ns 可以认为 undefined
       const ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag)
 
-      // handle IE svg bug
+      // handle IE svg bug 
       /* istanbul ignore if */
+      // 忽略:处理 svg 在 ie 下的bug：http://osgeo-org.1560.x6.nabble.com/WFS-and-IE-11-td5090636.html
       if (isIE && ns === 'svg') {
         attrs = guardIESVGBug(attrs)
       }
 
+      // 通过 tagName 、attrs 构建 ASTNode
       let element: ASTElement = createASTElement(tag, attrs, currentParent)
       if (ns) {
         element.ns = ns
       }
 
-      // 忽略
+      // 忽略 outputSourceRange :undefined
       if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
         element.start = start
         element.rawAttrsMap = element.attrsList.reduce((cumulated, attr) => {
@@ -204,7 +216,7 @@ export function parse (
         }, {})
       }
 
-      // 忽略
+      // 忽略: isForbiddenTag: <style>  <script type="text/javascript">
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true
         process.env.NODE_ENV !== 'production' && warn(
@@ -241,41 +253,61 @@ export function parse (
 
       // 设置第一个元素为根元素
       if (!root) {
-        root = element
+        root = element  // root 节点不存在，将当前节点设置为root节点
         if (process.env.NODE_ENV !== 'production') {
           checkRootConstraints(root)
         }
       }
       // 非闭合标签，存储当前标签名。用于构造父子关系使用
       if (!unary) {
-        currentParent = element
-        stack.push(element)
+        currentParent = element // 非闭合标签，则存在子节点，将当前节点设置为父节点
+        stack.push(element) // 将当前节点入栈
       } else {
-        closeElement(element)
+        // 针对自闭合标签的处理
+        closeElement(element)  
       }
     },
 
+    /*
+    HTML结构：
+     <div> 
+       <div>
+        <h1>1111</h1>
+        <h2>1111</h2>
+       </div>
+     </div>
+
+      实际上stack中存储的时 AstNode 节点， 此处用 tagName 说明
+      1、匹配到 <h1> 标签时, start 方法被调用， 此时 stack = ['div', 'div', 'h1'] 
+      2、匹配到结束标签 </h1> 时，此时 element 为 h1、  stack 设置为 [ 'div', 'div'] , currentParent 设置为 'div'
+      3、继续匹配到 <h2>，通过 start 方法， stack 变为 ['div', 'div', 'h2'],
+      4、匹配到结束标签 </h2> 时，此时 element 为 h2、  stack 设置为 [ 'div', 'div'] , currentParent 设置为 'div'
+      5、匹配到结束标签 </div> 时，此时 element 为 div、  stack 设置为 [ 'div'] , currentParent 设置为 'div'
+      6、匹配到结束标签 </div> 时，此时 element 为 div、  stack 设置为 [ ] , currentParent 设置为 undefined, 则当前节点为根节点。
+     */
     // 确定父子节点关系
     end (tag, start, end) {
-      const element = stack[stack.length - 1]
+      const element = stack[stack.length - 1]  // 获取 stack 中最后一个 AST节点
       if (!inPre) {
         // remove trailing whitespace node
         const lastNode = element.children[element.children.length - 1]
+        // 去除空白节点
         if (lastNode && lastNode.type === 3 && lastNode.text === ' ') {
           element.children.pop()
         }
       }
       // pop stack
-      stack.length -= 1
-      currentParent = stack[stack.length - 1]
+      stack.length -= 1 // 因为element已经被匹配到，故从 stack 中移除 element，作用域还原给了上层节点
+      currentParent = stack[stack.length - 1]    // 获取 stack 中 倒数第二个节点，作为当前节点的 父节点。 
       if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
         element.end = end
       }
-      closeElement(element)
+      closeElement(element)  // 匹配到类似于 </div> 这种结束标签
     },
     // 对文本部分的处理
     chars (text: string, start: number, end: number) {
       if (!currentParent) {
+        // 模板必须要有根元素、根元素外的文本将会被忽略
         if (process.env.NODE_ENV !== 'production') {
           if (text === template) {
             warnOnce(
@@ -293,13 +325,17 @@ export function parse (
       }
       // IE textarea placeholder bug
       /* istanbul ignore if */
+      // 忽略
       if (isIE &&
         currentParent.tag === 'textarea' &&
         currentParent.attrsMap.placeholder === text
       ) {
         return
       }
+
       const children = currentParent.children // 获取当前节点的父节点中的children属性，目的是将当前文本添加到 children中
+      
+      // 以下是对 text 的处理
       if (inPre || text.trim()) {
         text = isTextTag(currentParent) ? text : decodeHTMLCached(text)
       } else if (!children.length) {
@@ -324,6 +360,8 @@ export function parse (
         let res
         let child: ?ASTNode
         // 创建当前文件的 ASTNode，添加到父节点的 children 中
+
+        // 解析含有 {{}}的字面量表达式： < div > hello: { { message } } </div > 
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
           child = {
             type: 2,
@@ -332,6 +370,7 @@ export function parse (
             text
           }
         } else if (text !== ' ' || !children.length || children[children.length - 1].text !== ' ') {
+          // 纯文本节点
           child = {
             type: 3,
             text
@@ -342,7 +381,7 @@ export function parse (
             child.start = start
             child.end = end
           }
-          children.push(child)
+          children.push(child)  // 添加到父节点的 children 属性中
         }
       }
     },
@@ -351,7 +390,7 @@ export function parse (
       const child: ASTText = {
         type: 3,
         text,
-        isComment: true
+        isComment: true  // 标注为 注释节点
       }
       if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
         child.start = start
@@ -362,7 +401,7 @@ export function parse (
     }
   })
 
-  // 根节点，包含所有 AST 关系
+  // 根节点，包含所有 AST 关系（ASTElement）, 即最终返回的结果
   return root
 }
 

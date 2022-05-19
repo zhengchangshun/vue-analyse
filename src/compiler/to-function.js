@@ -12,7 +12,7 @@ type CompiledFunctionResult = {
 // 通过 code 创建函数，如果发生错误则收集在 errors 中
 function createFunction (code, errors) {
   try {
-    return new Function(code)
+    return new Function(code)  // 通过字符串模板创建函数
   } catch (err) {
     errors.push({ err, code })
     return noop
@@ -63,8 +63,8 @@ export function createCompileToFunctionFn (compile: Function): Function {
       return cache[key]
     }
 
-    // compile
-    // 通过 ast 转换，其中options 为 baseOptions 与 vm.options 的合并
+    // compile: 这里的compiler 就是 compiler/create-compiler 文件中 createCompilerCreator方法 中传入的 compiler 方法
+    // 主要方法内容其实是 compiler/index 文件中传入的 baseCompiler 方法，通过 ast 转换，其中options 为 baseOptions 与 vm.options 的合并
     // compiled 的 结构为：
     //     {
     //       ast,

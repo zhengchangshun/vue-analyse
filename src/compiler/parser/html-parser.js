@@ -19,7 +19,7 @@ import { unicodeLetters } from 'core/util/lang'
  *  匹配属性，包含 "id"="1" 、'id'='1' 、 id = 1、 checked 等形式的属性
  * ^ : 匹配开始
  * \s*: 空格0次或者多次
- * ([^\s"'<>\/=]+) ： 第一个捕获组，不能 \s、"、'、<、>、/、 =  这个几个字符： 用于匹配属性名
+ * ([^\s"'<>\/=]+) ： 第一个捕获组，不能 空格、"、'、<、>、/、 =  这个几个字符： 用于匹配属性名
  * (?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))? : 非捕获组，0-1，其中 0 次是永远匹配没有 "checked" 这种属性；
  *     \s*(=)\s* : 用于匹配等号，等号前后允许若干空格；
  *      以下作为多选分支，用于匹配属性值。
@@ -72,8 +72,9 @@ export function parseHTML (html, options) {
   // 来检测一个标签是否是可以省略闭合标签的非一元标签
   const canBeLeftOpenTag = options.canBeLeftOpenTag || no
   let index = 0  // 记录当前编译字符串的位置
-  let last, lastTag
-  // 开启一个 while 循环
+  let last, // 存储剩余还未编译的 html 字符串
+    lastTag // 始终存储着位于 stack 栈顶的元素
+  // 开启一个 while 循环,循环的终止条件是 html 字符串为空，即html 字符串全部编译完毕。
   while (html) {
     last = html  // 每次遍历开始，将last设置为 html，之后对html不断截取。
     // Make sure we're not in a plaintext content element like script/style
@@ -198,7 +199,7 @@ export function parseHTML (html, options) {
       parseEndTag(stackedTag, index - endTagLength, index)
     }
 
-    // 如果两者相等，则说明html 在经历循环体的代码之后没有任何改变，此时 html 要么为空，要么就是纯文本。
+    // // 极端情况下的处理: 如果两者相等，则说明html 在经历循环体的代码之后没有任何改变。
     if (html === last) {
       options.chars && options.chars(html)
       if (process.env.NODE_ENV !== 'production' && !stack.length && options.warn) {
@@ -209,6 +210,7 @@ export function parseHTML (html, options) {
   }
 
   // Clean up any remaining tags
+  // 此时 parseEndTag 中的 pos = 0  stack.length = 0 ，清空 stack 数组
   parseEndTag()
 
   // 剔除已经编译的html内容,同时将index设置为最新值
@@ -235,9 +237,9 @@ export function parseHTML (html, options) {
         attr.end = index  // 当前匹配的结束位置
         match.attrs.push(attr)  // 将属性存储到 match 中
       }
-      // 属性匹配结束
+      // 属性匹配结束, end 为 开始标签的结束部分
       if (end) {
-        match.unarySlash = end[1]
+        match.unarySlash = end[1]  // end[1]不为undefined，那么说明该标签是自闭合标签。
         advance(end[0].length)  // 继续截取
         match.end = index
         return match
@@ -261,13 +263,15 @@ export function parseHTML (html, options) {
       }
     }
 
+    // 判断是否是自闭合标签
     const unary = isUnaryTag(tagName) || !!unarySlash
 
     const l = match.attrs.length
     const attrs = new Array(l)
+    // 处理 attrs，构造  name - value的对象
     for (let i = 0; i < l; i++) {
       const args = match.attrs[i]
-      const value = args[3] || args[4] || args[5] || ''  // 通过捕获组获取属性值
+      const value = args[3] || args[4] || args[5] || ''  // 通过捕获组（ 正则表达式 attribute 中 ）获取属性值
       const shouldDecodeNewlines = tagName === 'a' && args[1] === 'href'
         ? options.shouldDecodeNewlinesForHref  // false
         : options.shouldDecodeNewlines // false
@@ -281,7 +285,7 @@ export function parseHTML (html, options) {
       }
     }
 
-    // 用于判断是否是自闭合标签。非自闭合标签还需判断是否有子节点。
+    // 用于判断是否是自闭合标签。非自闭合标签还需判断是否有子节点。即push到stack数组中，并将lastTag的值设置为该标签名
     if (!unary) {
       // 将解析后的结果 存在在 stack 中
       stack.push({ tag: tagName, lowerCasedTag: tagName.toLowerCase(), attrs: attrs, start: match.start, end: match.end })
@@ -289,16 +293,23 @@ export function parseHTML (html, options) {
     }
 
     if (options.start) {
+      // 创建 ASTNode
       options.start(tagName, attrs, unary, match.start, match.end)
     }
   }
+ /*
+ 1、检测是否缺少闭合标签
+ 2、处理 stack 栈中剩余的标签
+ 3、解析</br> 与标签，与浏览器的行为相同
 
+ */
   function parseEndTag (tagName, start, end) {
     let pos, lowerCasedTagName
     if (start == null) start = index
     if (end == null) end = index
 
     // Find the closest opened tag of the same type
+    // 在 stack 中 查找是否有当前标签对应标签名
     if (tagName) {
       lowerCasedTagName = tagName.toLowerCase()
       for (pos = stack.length - 1; pos >= 0; pos--) {
@@ -310,7 +321,8 @@ export function parseHTML (html, options) {
       // If no tag name is provided, clean shop
       pos = 0
     }
-
+    // 如果当前标签对应标签名出现的位置 pos > 0 , 则说明从从  pos  - stack.length 的标签没有设置结束标签，则html结构存在问题
+    // pos = 0 , 说明当前的stack 最后一个元素与当前的标签匹配，符合html结构
     if (pos >= 0) {
       // Close all the open elements, up the stack
       for (let i = stack.length - 1; i >= pos; i--) {
@@ -329,13 +341,13 @@ export function parseHTML (html, options) {
       }
 
       // Remove the open elements from the stack
-      stack.length = pos
-      lastTag = pos && stack[pos - 1].tag
-    } else if (lowerCasedTagName === 'br') {
+      stack.length = pos  // 移除没有闭合的非法标签。
+      lastTag = pos && stack[pos - 1].tag  // 将 lastTag 设置为 stack 的最后一个元素
+    } else if (lowerCasedTagName === 'br') {  // 对 </br> 的处理 , 此时 stack 中没有 br 的标记
       if (options.start) {
         options.start(tagName, [], true, start, end)
       }
-    } else if (lowerCasedTagName === 'p') {
+    } else if (lowerCasedTagName === 'p') { // 对 </p> 标签的处理,  此时 stack 中没有 p 的标记
       if (options.start) {
         options.start(tagName, [], false, start, end)
       }

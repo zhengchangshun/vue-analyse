@@ -3,24 +3,13 @@
 import { extend } from 'shared/util'
 import { detectErrors } from './error-detector'
 import { createCompileToFunctionFn } from './to-function'
-import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from "web/util/compat"
 
 export function createCompilerCreator (baseCompile: Function): Function {
   return function createCompiler (baseOptions: CompilerOptions) {
     // 这里是 compile 方法的具体实现
     function compile (
       template: string,   // 模板字符串
-      /* compileToFunctions 方法执行时的 options
-      {
-        outputSourceRange: process.env.NODE_ENV !== 'production',
-        shouldDecodeNewlines,  // 浏览器情况下 false
-        shouldDecodeNewlinesForHref, // 浏览器情况下 false
-        delimiters: options.delimiters, // Vue 的 options 属性，一般为 undefined
-        comments: options.comments  // Vue 的 options 属性，一般为 undefined 。 为 true 时，将会保留html的注释
-      }
-    */
       options?: CompilerOptions
-
     ): CompiledResult {
        // ./index 中传递的 baseOptions 参数
       const finalOptions = Object.create(baseOptions)
