@@ -37,18 +37,20 @@ function genStaticKeys (keys: string): Function {
 
 function markStatic (node: ASTNode) {
   node.static = isStatic(node)
-  if (node.type === 1) {
+  if (node.type === 1) {  // 标签节点
     // do not make component slot content static. this avoids
     // 1. components not able to mutate slot nodes
     // 2. static slot content fails for hot-reloading
     if (
-      !isPlatformReservedTag(node.tag) &&
-      !node.component &&
-      node.tag !== 'slot' &&
+      !isPlatformReservedTag(node.tag) &&  //  是否是html标签，不是则为 组件
+      !node.component &&  // 组件
+      node.tag !== 'slot' &&  // <slot>
       node.attrsMap['inline-template'] == null
     ) {
       return
     }
+
+    // 深度优先，递归判断子节点是是静态节点
     for (let i = 0, l = node.children.length; i < l; i++) {
       const child = node.children[i]
       markStatic(child)
@@ -98,20 +100,23 @@ function markStaticRoots (node: ASTNode, isInFor: boolean) {
   }
 }
 
+// 判断节点是为静态节点
 function isStatic (node: ASTNode): boolean {
+  // 含有双向绑定的节点，是非静态节点
   if (node.type === 2) { // expression
     return false
   }
+  // 纯文本是静态节点
   if (node.type === 3) { // text
     return true
   }
   return !!(node.pre || (
-    !node.hasBindings && // no dynamic bindings
-    !node.if && !node.for && // not v-if or v-for or v-else
-    !isBuiltInTag(node.tag) && // not a built-in
-    isPlatformReservedTag(node.tag) && // not a component
-    !isDirectChildOfTemplateFor(node) &&
-    Object.keys(node).every(isStaticKey)
+    !node.hasBindings && // no dynamic bindings              无动态绑定
+    !node.if && !node.for && // not v-if or v-for or v-else  没有 v-if 和 v-for 指令
+    !isBuiltInTag(node.tag) && // not a built-in             不是内置的标签
+    isPlatformReservedTag(node.tag) && // not a component    是平台保留标签(html和svg标签)
+    !isDirectChildOfTemplateFor(node) &&  //                 不是 template 标签的直接子元素并且没有包含在 for 循环中
+    Object.keys(node).every(isStaticKey)  //                 结点包含的属性只能有isStaticKey中指定的几个
   ))
 }
 

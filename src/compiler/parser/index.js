@@ -23,7 +23,7 @@ import {
 export const onRE = /^@|^v-on:/    // 匹配 @、 v-on
 export const dirRE = /^v-|^@|^:|^\./  // 匹配指令  @、 :、 v-
 export const forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/  // 匹配 v-for 当中的 in 或者 of 前后的内容
-export const forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/   // 匹配 v-for 当中的 属性值  如：(item, index )
+export const forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/   // 匹配 v-for 当中的 属性值中逗号后边的部分  如：,index
 const stripParensRE = /^\(|\)$/g
 
 const argRE = /:(.*)$/  //argRE正则用来匹配指令编写中的参数，并且拥有一个捕获组，用来捕获参数的名字。
@@ -84,7 +84,7 @@ export function parse (
 
   delimiters = options.delimiters   //插值的符号，默认 {{ }}
 
-  const stack = []  // 用于存储 AstNode 结构
+  const stack = []  // 用于存储 ASTNode 结构
   const preserveWhitespace = options.preserveWhitespace !== false
   const whitespaceOption = options.whitespace
   let root
@@ -130,6 +130,7 @@ export function parse (
       }
     }
     if (currentParent && !element.forbidden) {
+      // 如果当前的节点中村 v-else 、 v-else-if, 则需要需要父节点的children（已经收集的子节点） 中存在 v-if
       if (element.elseif || element.else) {
         processIfConditions(element, currentParent)
       } else if (element.slotScope) { // scoped slot
@@ -216,7 +217,7 @@ export function parse (
         }, {})
       }
 
-      // 忽略: isForbiddenTag: <style>  <script type="text/javascript">
+      // 忽略: isForbiddenTag: <style>  <script type="text/javascript"> 不被允许
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true
         process.env.NODE_ENV !== 'production' && warn(
@@ -277,7 +278,7 @@ export function parse (
        </div>
      </div>
 
-      实际上stack中存储的时 AstNode 节点， 此处用 tagName 说明
+      实际上stack中存储的时 ASTNode 节点， 此处用 tagName 说明
       1、匹配到 <h1> 标签时, start 方法被调用， 此时 stack = ['div', 'div', 'h1'] 
       2、匹配到结束标签 </h1> 时，此时 element 为 h1、  stack 设置为 [ 'div', 'div'] , currentParent 设置为 'div'
       3、继续匹配到 <h2>，通过 start 方法， stack 变为 ['div', 'div', 'h2'],
@@ -405,7 +406,7 @@ export function parse (
   return root
 }
 
-//处理 v-pre 指令： 找到 v-pre属性, 并删除该属性
+//处理 v-pre 指令： 找到 v-pre属性, 并删除该属性，并在当前 ASTNode 上添加 pre 属性
 function processPre (el) {
   if (getAndRemoveAttr(el, 'v-pre') != null) {
     el.pre = true
@@ -458,19 +459,21 @@ export function processElement (
   return element
 }
 
-//处理 key：
+//处理 key：特定标签上不能使用key；将 ASTNode 的 key 属性赋值为 key 的内容，并从 attrsList 中删除 key
 function processKey (el) {
-  const exp = getBindingAttr(el, 'key')
+  const exp = getBindingAttr(el, 'key')  // 获取绑定在 key 上的内容
   if (exp) {
     if (process.env.NODE_ENV !== 'production') {
+      // key 不能作用在 template 标签上
       if (el.tag === 'template') {
         warn(
           `<template> cannot be keyed. Place the key on real elements instead.`,
           getRawBindingAttr(el, 'key')
         )
       }
+      // v-for 中对 index 的处理
       if (el.for) {
-        const iterator = el.iterator2 || el.iterator1
+        const iterator = el.iterator2 || el.iterator1  // 对应 index 参数
         const parent = el.parent
         if (iterator && iterator === exp && parent && parent.tag === 'transition-group') {
           warn(
@@ -486,22 +489,22 @@ function processKey (el) {
   }
 }
 
-//处理 ref：
+//处理 ref：将 ASTNode 的 ref 属性赋值为 ref 的内容，并从 attrsList 中删除 key
 function processRef (el) {
   const ref = getBindingAttr(el, 'ref')
   if (ref) {
     el.ref = ref
-    el.refInFor = checkInFor(el)
+    el.refInFor = checkInFor(el)  // 确定 ref 是否处理 v-for 中
   }
 }
 
-//处理 v-for：
+//处理 v-for： 解析 v-for 对应的变量，以及循环的参数，添加到 ASTNode 属性 中 ，并 v-for 属性从 attrsList 中删除
 export function processFor (el: ASTElement) {
   let exp
   if ((exp = getAndRemoveAttr(el, 'v-for'))) {
     const res = parseFor(exp)
     if (res) {
-      extend(el, res)
+      extend(el, res)   // 将 res 对象 {for,alias,iterator1,iterator2}复制到el（ASTNode）的属性中。
     } else if (process.env.NODE_ENV !== 'production') {
       warn(
         `Invalid v-for expression: ${exp}`,
@@ -518,29 +521,33 @@ type ForParseResult = {
   iterator2?: string;
 };
 
-// 解析 v-for：
+// 解析 v-for：获取 v-for 作用的变量（array 或者 object），以及记录v-for当中的各个参数。
 export function parseFor (exp: string): ?ForParseResult {
+  // forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/ , 匹配 v-for 中 in或者of 前后的内容 ，分别捕获
   const inMatch = exp.match(forAliasRE)
   if (!inMatch) return
   const res = {}
-  res.for = inMatch[2].trim()
-  const alias = inMatch[1].trim().replace(stripParensRE, '')
+  res.for = inMatch[2].trim()  // v-for 操作的 array 或者 object
+  // stripParensRE = /^\(|\)$/g 匹配 v-for 中的 in 或者 of 之前的 ( 或者 )
+  const alias = inMatch[1].trim().replace(stripParensRE, '')  // 匹配 v-for 中 ( item, index ) 部分，并去除括号，结果为： item 或者 item,index  等
   const iteratorMatch = alias.match(forIteratorRE)
+  // forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/ 匹配:  ,index 等，确定当前 v-for 是否只含有一个参数
   if (iteratorMatch) {
-    res.alias = alias.replace(forIteratorRE, '').trim()
-    res.iterator1 = iteratorMatch[1].trim()
+    // 存在多个参数
+    res.alias = alias.replace(forIteratorRE, '').trim()  // 将逗号后的内容替换为空，则结果为 v-for 中的 item （第一个参数）
+    res.iterator1 = iteratorMatch[1].trim()  // v-for 中第二个参数
     if (iteratorMatch[2]) {
-      res.iterator2 = iteratorMatch[2].trim()
+      res.iterator2 = iteratorMatch[2].trim()  // v-for 中第三个参数
     }
   } else {
-    res.alias = alias
+    res.alias = alias  //  v-for 只有一个参数，则直接 alias 几位
   }
   return res
 }
 
-//处理 v-if 等：
+//处理 v-if 等：解析 v-if 的内容，并添加到 ASTNode 的 ifConditions 属性中，同时并、从 attrsList 中删除 v-if
 function processIf (el) {
-  const exp = getAndRemoveAttr(el, 'v-if')
+  const exp = getAndRemoveAttr(el, 'v-if') // 获取 v-if 的内容，并从 attrsList 中删除
   if (exp) {
     el.if = exp
     addIfCondition(el, {
@@ -558,6 +565,7 @@ function processIf (el) {
   }
 }
 
+// 确保 v-else、 v-else-if 之前存在 v-if
 function processIfConditions (el, parent) {
   const prev = findPrevElement(parent.children)
   if (prev && prev.if) {
@@ -566,6 +574,7 @@ function processIfConditions (el, parent) {
       block: el
     })
   } else if (process.env.NODE_ENV !== 'production') {
+    // 不能单独使用 v-else 或者 v-else-if
     warn(
       `v-${el.elseif ? ('else-if="' + el.elseif + '"') : 'else'} ` +
       `used on element <${el.tag}> without corresponding v-if.`,
@@ -574,13 +583,15 @@ function processIfConditions (el, parent) {
   }
 }
 
+// 找到第一个 type=1 的字节点 （node 节点）
 function findPrevElement (children: Array<any>): ASTElement | void {
   let i = children.length
   while (i--) {
-    if (children[i].type === 1) {
+    if (children[i].type === 1) {   //  node 节点
       return children[i]
     } else {
       if (process.env.NODE_ENV !== 'production' && children[i].text !== ' ') {
+        // 处于 v-if 和  v-else 之前的文本内容会被忽略
         warn(
           `text "${children[i].text.trim()}" between v-if and v-else(-if) ` +
           `will be ignored.`,
@@ -592,6 +603,7 @@ function findPrevElement (children: Array<any>): ASTElement | void {
   }
 }
 
+// 向 ASTNode 的 ifConditions 属性中添加内容
 export function addIfCondition (el: ASTElement, condition: ASTIfCondition) {
   if (!el.ifConditions) {
     el.ifConditions = []
@@ -599,7 +611,7 @@ export function addIfCondition (el: ASTElement, condition: ASTIfCondition) {
   el.ifConditions.push(condition)
 }
 
-//处理 v-once：
+//处理 v-once：获取 v-once 的内容 添加到 ASTNode 的once 属性中，并从 attrList 中删除 v-once
 function processOnce (el) {
   const once = getAndRemoveAttr(el, 'v-once')
   if (once != null) {
@@ -607,9 +619,10 @@ function processOnce (el) {
   }
 }
 
-//处理 slot：
+//处理 slot：包含 <slot>  、 v-slot、slot-scope 的处理
 function processSlot (el) {
   if (el.tag === 'slot') {
+    // 针对 <slot name="user"> 的处理，:key 不能作用于 slot 标签
     el.slotName = getBindingAttr(el, 'name')
     if (process.env.NODE_ENV !== 'production' && el.key) {
       warn(
@@ -750,7 +763,7 @@ function processAttrs (el) {
       // mark element as dynamic
       el.hasBindings = true
       // modifiers
-      modifiers = parseModifiers(name.replace(dirRE, ''))
+      modifiers = parseModifiers(name.replace(dirRE, ''))  // 处理事件的修饰符
       // support .foo shorthand syntax for the .prop modifier
       if (propBindRE.test(name)) {
         (modifiers || (modifiers = {})).prop = true
@@ -852,6 +865,7 @@ function processAttrs (el) {
   }
 }
 
+// 向父节点递归查询，确定当前节点是否处于父节点的 v-for 当中。
 function checkInFor (el: ASTElement): boolean {
   let parent = el
   while (parent) {
@@ -863,15 +877,18 @@ function checkInFor (el: ASTElement): boolean {
   return false
 }
 
+// 解析修饰符：并在修饰符存于对象
 function parseModifiers (name: string): Object | void {
-  const match = name.match(modifierRE)
+  const match = name.match(modifierRE)  // 匹配修饰符
   if (match) {
     const ret = {}
+    // 将多个修饰符解析后，存入一个数组。例如  v-on:keyup.alt.67 （Alt + C）  ===》 ret = {'.alt':true, '67': true}
     match.forEach(m => { ret[m.slice(1)] = true })
     return ret
   }
 }
 
+// 将 Attr 的由数组转化成 object，重复 Key 会覆盖
 function makeAttrsMap (attrs: Array<Object>): Object {
   const map = {}
   for (let i = 0, l = attrs.length; i < l; i++) {
@@ -887,7 +904,7 @@ function makeAttrsMap (attrs: Array<Object>): Object {
 }
 
 // for script (e.g. type="x/template") or style, do not decode content
-// script、style标签不处理
+// 标签名是否为 script、style
 function isTextTag (el): boolean {
   return el.tag === 'script' || el.tag === 'style'
 }

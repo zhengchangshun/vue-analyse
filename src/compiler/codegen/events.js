@@ -52,6 +52,7 @@ const modifierCode: { [key: string]: string } = {
   right: genGuard(`'button' in $event && $event.button !== 2`)
 }
 
+// 将事件拼接成字符串
 export function genHandlers (
   events: ASTElementHandlers,
   isNative: boolean

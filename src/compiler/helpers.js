@@ -26,6 +26,7 @@ export function addProp (el: ASTElement, name: string, value: string, range?: Ra
   (el.props || (el.props = [])).push(rangeSetItem({ name, value }, range))
   el.plain = false
 }
+
 // 给 attrs 属性添加 数组元素 {name,value}，并记录位置
 export function addAttr (el: ASTElement, name: string, value: any, range?: Range) {
   (el.attrs || (el.attrs = [])).push(rangeSetItem({ name, value }, range))
@@ -141,6 +142,7 @@ export function getRawBindingAttr (
     el.rawAttrsMap[name]
 }
 
+// 获取双向绑定的内容，如 :key="index" ， 则返回的就是 'index'
 export function getBindingAttr (
   el: ASTElement,
   name: string,

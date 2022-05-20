@@ -81,6 +81,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
       }
 
       const children = el.inlineTemplate ? null : genChildren(el, state, true)
+      // _c 就是createElement 方法。拼接字符串模板（函数）
       code = `_c('${el.tag}'${
         data ? `,${data}` : '' // data
       }${
@@ -216,6 +217,7 @@ export function genFor (
     '})'
 }
 
+  // 根据ASTNode 上的属性，拼接对应的字符串。
 export function genData (el: ASTElement, state: CodegenState): string {
   let data = '{'
 
@@ -223,6 +225,7 @@ export function genData (el: ASTElement, state: CodegenState): string {
   // directives may mutate the el's other properties before they are generated.
   const dirs = genDirectives(el, state)
   if (dirs) data += dirs + ','
+
 
   // key
   if (el.key) {
@@ -396,6 +399,8 @@ function genForScopedSlot (
     '})'
 }
 
+// 遍历子节点，生成对应的模板字符串，其中调用了 gen 方法，在 gen 方法中如果是 nodeType = 1（Dom节点）时，会重新调用 genElement 方法.
+// 而在 genElement 中如果发布有 children 则调用 getChildRen 方法，因此形成递归调用
 export function genChildren (
   el: ASTElement,
   state: CodegenState,
@@ -460,23 +465,26 @@ function needsNormalization (el: ASTElement): boolean {
 
 function genNode (node: ASTNode, state: CodegenState): string {
   if (node.type === 1) {
-    return genElement(node, state)
+    return genElement(node, state)   // 节点类型
   } else if (node.type === 3 && node.isComment) {
-    return genComment(node)
+    return genComment(node)   // 注释
   } else {
-    return genText(node)
+    return genText(node)  // 文本类型
   }
 }
 
 export function genText (text: ASTText | ASTExpression): string {
+  // type === 2 的文本节点中 包含双向绑定的内容 {{xxx}}
+  // _v() 是  Vue.prototype._v 方法，用于生成字符串 Node 节点 （creatTextNode）
+  // _s() 是  Vue.prototype._v 方法，用于获取双向绑定的值
   return `_v(${text.type === 2
-    ? text.expression // no need for () because already wrapped in _s()
-    : transformSpecialNewlines(JSON.stringify(text.text))
+    ? text.expression //  expression 包含 _s(xxx)
+    : transformSpecialNewlines(JSON.stringify(text.text))  // 可以理解为返回文本内容
   })`
 }
 
 export function genComment (comment: ASTText): string {
-  return `_e(${JSON.stringify(comment.text)})`
+  return `_e(${JSON.stringify(comment.text)})`  // 返回注释内容
 }
 
 function genSlot (el: ASTElement, state: CodegenState): string {
@@ -509,6 +517,7 @@ function genComponent (
   })`
 }
 
+// 将属性拼接成字符串
 function genProps (props: Array<ASTAttr>): string {
   let res = ''
   for (let i = 0; i < props.length; i++) {
