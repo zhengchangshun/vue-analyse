@@ -99,6 +99,7 @@ export function renderMixin (Vue: Class<Component>) {
         vnode = vm._vnode
       }
     }
+
     // if the returned array contains only a single node, allow it
     if (Array.isArray(vnode) && vnode.length === 1) {
       vnode = vnode[0]
